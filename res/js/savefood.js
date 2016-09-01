@@ -1,0 +1,1 @@
+var saveFood = angular.module('saveFood', ["firebase"]);

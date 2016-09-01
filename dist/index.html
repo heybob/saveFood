@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Site Css -->
+  <link rel="stylesheet" href="css/saveFood.min.css" />
+  <!-- Angularjs -->
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase.js"></script>
+<!-- AngularFire -->
+<script src="https://cdn.firebase.com/libs/angularfire/1.2.0/angularfire.min.js"></script>
+<script>
+  // Initialize Firebase
+  //Move to app js file.
+  var config = {
+    apiKey: "AIzaSyDkT1Ozv1WFOVPG18AJylS7rsIxj46fjZc",
+    authDomain: "save-food-cba1b.firebaseapp.com",
+    databaseURL: "https://save-food-cba1b.firebaseio.com",
+    storageBucket: "save-food-cba1b.appspot.com",
+  };
+  firebase.initializeApp(config);
+</script>
+<!-- App JS -->
+<script src="js/saveFood.min.js"></script>
+</head>
+<body ng-app="saveFood">
+  <h1>Save food app</h1>
+</body>
+</html>

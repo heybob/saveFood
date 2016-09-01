@@ -1,0 +1,10 @@
+{
+	"version": 3,
+	"file": "saveFood.min.css",
+	"sources": [
+		"../../res/scss/saveFood.scss",
+		"../../res/scss/_globals.scss"
+	],
+	"mappings": "ACEA,AAAA,IAAI,CAAA;EACF,WAAW,EAAE,qBAAsB,GACpC",
+	"names": []
+}
