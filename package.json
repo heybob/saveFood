@@ -9,5 +9,8 @@
     "grunt-sass": "~1.2.1",
     "grunt-contrib-copy": "~1.0.0",
     "grunt-contrib-clean": "~1.0.0"
+  },
+  "dependencies": {
+    "firebase": "~3.3.0"
   }
 }
