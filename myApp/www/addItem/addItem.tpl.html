@@ -1,1 +1,38 @@
- <h1>Add Item</h1>
+<ion-modal-view>
+  <ion-header-bar class="bar-balanced">
+    <h1 class="title">Add an Item</h1>
+  </ion-header-bar>
+  <ion-content class="padding">
+    <form>
+      <div class="list">
+        <label class="item item-input">
+          <span class="input-label">Item Name</span>
+          <input ng-model="form.name" type="text">
+        </label>
+        <label class="item item-input item-select">
+          <div class="input-label">
+            Servings
+          </div>
+          <select ng-model="form.type" ng-init="form.type = containerOptions[0]" ng-options="option.value for option in containerOptions" >
+          </select>
+        </label>
+        <label class="item item-input item-select">
+          <div class="input-label">
+            Storage Location
+          </div>
+          <select ng-model="form.type" ng-init="form.type = containerOptions[0]" ng-options="option.value for option in containerOptions" >
+          </select>
+        </label>
+        <label class="item item-input item-select">
+          <div class="input-label">
+            Expires
+          </div>
+          <select ng-model="form.type" ng-init="form.type = containerOptions[0]" ng-options="option.value for option in containerOptions" >
+          </select>
+        </label>
+      </div>
+    </form>
+    <button ng-click="addItemModalProps.executeFn(addItemModalProps.container)"class="button button-block button-balanced ">{{addItemModalProps.buttonName}}</button>
+    <button ng-click="closeAddItemModal()" class="button button-block button-stable">Cancel</button>
+  </ion-content>
+</ion-modal-view>

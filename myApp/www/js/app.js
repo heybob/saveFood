@@ -80,8 +80,12 @@ app.config(function($stateProvider, $urlRouterProvider) {
 });
 
 app.controller('savingFood.homeCtrl', homeCtrl);
-homeCtrl.$inject = ['$scope', '$firebaseArray', '$firebaseObject', '$state'];
-function homeCtrl($scope, $firebaseArray, $firebaseObject, $state){
+homeCtrl.$inject = ['$scope', '$firebaseArray', '$firebaseObject', '$state', '$ionicModal'];
+function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
+
+  // API
+  $scope.openAddItemModal = openAddItemModal;
+  $scope.closeAddItemModal = closeAddItemModal;
 
   //create a temporary user
   $scope.user = {
@@ -91,36 +95,28 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state){
       email: 'bfiliczkowski@gmail.com',
       password: 'heybob' // need to obfuscate this.
     };
-  $scope.testForm = {};
-  var namesRef = firebase.database().ref('testNames');
-  $scope.names = $firebaseObject(namesRef);
-  $scope.addName = addName;
-  $scope.sayHello = function(){
-    console.log('say hello');
+  $scope.addItemModalProps = {
+    buttonName: 'Add',
+    executeFn: null,
+    item: null
   };
 
-  setTimeout(function(){
-    console.log($scope.names);
-  },3000);
-  function addName() {
-    if($scope.testForm.name){
-      firebase.database().ref('testNames').push({
-      name: $scope.testForm.name
-    });
-      clearForm();
-    }
+  $ionicModal.fromTemplateUrl('addItem/addItem.tpl.html', {
+    scope: $scope,
+    animation: 'slide-in-up',
+    focusFirstInput: true
+  }).then(function(modal) {
+    $scope.itemModal = modal;
+  });
+
+  function openAddItemModal(id, item) {
+    $scope.itemModal.show();
   }
 
-  $scope.removeName = function(name){
-    name.name = null;
-    $scope.names.$save();
-    clearForm();
-
-  };
-
-  function clearForm(){
-    $scope.testForm = {};
+  function closeAddItemModal() {
+    $scope.itemModal.hide();
   }
+
 }
 
 app.controller('savingFood.containerCtrl', containerCtrl);
@@ -130,6 +126,8 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
   //Public Methods
   $scope.addContainer = addContainer;
   $scope.removeContainer = removeContainer;
+  $scope.openAddContainerModal =  openAddContainerModal;
+  $scope.closeAddContainerModal = closeAddContainerModal;
 
   //variables
   var containersRef = firebase.database().ref('containers');
@@ -140,7 +138,6 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
     {name: 'Freezer', value: 'Freezer'}
   ];
   $scope.modalProps = {
-    context: undefined,
     buttonName: undefined,
     executeFn: null,
     container: null
@@ -178,9 +175,9 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
     animation: 'slide-in-up',
     focusFirstInput: true
   }).then(function(modal) {
-    $scope.modal = modal;
+    $scope.containerModal = modal;
   });
-  $scope.openAddContainerModal = function(id, container) {
+  function openAddContainerModal(id, container) {
     if(!id) { // implied Add
       $scope.modalProps = {
         buttonName: 'Add',
@@ -199,16 +196,18 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
         $scope.form.type = $scope.containerOptions[1];
       }
     }
-    $scope.modal.show();
-  };
-  $scope.closeAddContainerModal = function() {
+    $scope.containerModal.show();
+  }
+
+  function closeAddContainerModal() {
     clearForm();
-    $scope.modal.hide();
-  };
+    $scope.containerModal.hide();
+  }
+
   // Cleanup the modal when we're done with it!
   $scope.$on('$destroy', function() {
     clearForm();
-    $scope.modal.remove();
+    $scope.containerModal.remove();
 
   });
   // Execute action on hide modal
