@@ -1,5 +1,17 @@
 <ion-view title="containers">
  <ion-content class="padding">
- <h1>Containers</h1>
+   <ul class="list">
+     <div class="item item-divider">
+       My Containers
+       <span><i ng-click="openAddContainerModal()" class="icon ion-ios-plus" style="float: right; margin-rigth: 5px; font-size: 25px"></i></span>
+     </div>
+    <li class="item item-button-right" ng-repeat="(id, container) in containers">{{container.name}}
+      <span class="" style="float: right; color: #ccc; margin-right:20px">{{container.type}}</span>
+      <div class="buttons">
+        <button class="button button-icon ion-edit" ng-click="openAddContainerModal(id, container)"></button>
+        <button class="button button-icon ion-trash-a" ng-click="removeContainer(id, container)"></button>
+      </div>
+    </li>
+   </ul>
  </ion-content>
 </ion-view>

@@ -3,7 +3,7 @@
     apiKey: "AIzaSyDkT1Ozv1WFOVPG18AJylS7rsIxj46fjZc",
     authDomain: "save-food-cba1b.firebaseapp.com",
     databaseURL: "https://save-food-cba1b.firebaseio.com",
-    storageBucket: "save-food-cba1b.appspot.com",
+    storageBucket: "save-food-cba1b.appspot.com"
   };
   firebase.initializeApp(config);
   var database = firebase.database();
@@ -13,7 +13,7 @@
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
-var app = angular.module('starter', ['ionic', 'firebase'])
+var app = angular.module('savingFood', ['ionic', 'firebase'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -36,7 +36,7 @@ var app = angular.module('starter', ['ionic', 'firebase'])
 //============ Configuration ===============/
 
 app.config(function($stateProvider, $urlRouterProvider) {
-  $stateProvider 
+  $stateProvider
   .state('tabs', {
     url: "/tab",
     abstract: true,
@@ -54,7 +54,8 @@ app.config(function($stateProvider, $urlRouterProvider) {
     url: '/containers',
     views: {
       'tab-containers': {
-        templateUrl: 'containers/containers.tpl.html'
+        templateUrl: 'containers/containers.tpl.html',
+        controller: 'savingFood.containerCtrl'
       }
     }
   })
@@ -73,22 +74,23 @@ app.config(function($stateProvider, $urlRouterProvider) {
         templateUrl: 'settings/settings.tpl.html'
       }
     }
-  })
-  .state('addItem', {
-    url: 'addItem',
-    views: {
-      'addItem': {
-        templateUrl: 'addItem/addItem.tpl.html'
-      }
-    }
   });
   // if none of the above states are matched, use this as the fallback
    $urlRouterProvider.otherwise("/tab/expiring");
 });
 
-app.controller('starter.testCtrl', test);
-  test.$inject = ['$scope', '$firebaseArray', '$firebaseObject', '$state']
-function test($scope, $firebaseArray, $firebaseObject, $state){
+app.controller('savingFood.homeCtrl', homeCtrl);
+homeCtrl.$inject = ['$scope', '$firebaseArray', '$firebaseObject', '$state'];
+function homeCtrl($scope, $firebaseArray, $firebaseObject, $state){
+
+  //create a temporary user
+  $scope.user = {
+      id: 'bfiliczkowski',
+      firstName: 'Bob',
+      lastName: 'Filiczkowski',
+      email: 'bfiliczkowski@gmail.com',
+      password: 'heybob' // need to obfuscate this.
+    };
   $scope.testForm = {};
   var namesRef = firebase.database().ref('testNames');
   $scope.names = $firebaseObject(namesRef);
@@ -113,10 +115,108 @@ function test($scope, $firebaseArray, $firebaseObject, $state){
     name.name = null;
     $scope.names.$save();
     clearForm();
- 
+
   };
 
   function clearForm(){
     $scope.testForm = {};
   }
+}
+
+app.controller('savingFood.containerCtrl', containerCtrl);
+containerCtrl.$inject = ['$scope', '$firebaseObject', '$state', '$ionicModal'];
+function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
+
+  //Public Methods
+  $scope.addContainer = addContainer;
+  $scope.removeContainer = removeContainer;
+
+  //variables
+  var containersRef = firebase.database().ref('containers');
+  $scope.containers = $firebaseObject(containersRef);
+  $scope.form = {};
+  $scope.containerOptions = [
+    {name: 'Fridge', value: 'Fridge'},
+    {name: 'Freezer', value: 'Freezer'}
+  ];
+  $scope.modalProps = {
+    context: undefined,
+    buttonName: undefined,
+    executeFn: null,
+    container: null
+  };
+
+  function removeContainer(id, container) {
+    var ref = firebase.database().ref('containers/' + id);
+    var obj = $firebaseObject(ref);
+    obj.$remove();
+  }
+  function addContainer() {
+    var container = {
+      name: $scope.form.name,
+      type: $scope.form.type.value
+    };
+    firebase.database().ref('containers').push(container);
+    $scope.closeAddContainerModal();
+  }
+
+  function updateContainer(container){
+    container.name = $scope.form.name;
+    container.type = $scope.form.type.value;
+    $scope.containers.$save();
+    $scope.closeAddContainerModal();
+
+  }
+
+  function clearForm(){
+    $scope.form.name = undefined;
+    $scope.form.type = $scope.containerOptions[0];
+  }
+
+  $ionicModal.fromTemplateUrl('containers/addContainerModal.tpl.html', {
+    scope: $scope,
+    animation: 'slide-in-up',
+    focusFirstInput: true
+  }).then(function(modal) {
+    $scope.modal = modal;
+  });
+  $scope.openAddContainerModal = function(id, container) {
+    if(!id) { // implied Add
+      $scope.modalProps = {
+        buttonName: 'Add',
+        executeFn: addContainer
+      };
+    } else {
+      $scope.modalProps = {
+        buttonName: 'Update',
+        executeFn: updateContainer,
+        container: container
+      };
+      $scope.form.name = container.name;
+      if(container.type === 'Fridge'){
+        $scope.form.type = $scope.containerOptions[0];
+      } else {
+        $scope.form.type = $scope.containerOptions[1];
+      }
+    }
+    $scope.modal.show();
+  };
+  $scope.closeAddContainerModal = function() {
+    clearForm();
+    $scope.modal.hide();
+  };
+  // Cleanup the modal when we're done with it!
+  $scope.$on('$destroy', function() {
+    clearForm();
+    $scope.modal.remove();
+
+  });
+  // Execute action on hide modal
+  $scope.$on('modal.hidden', function() {
+    // Execute action
+  });
+  // Execute action on remove modal
+  $scope.$on('modal.removed', function() {
+    // Execute action
+  });
 }
