@@ -9,30 +9,28 @@
           <span class="input-label">Item Name</span>
           <input ng-model="form.name" type="text">
         </label>
-        <label class="item item-input item-select">
+        <label class="item item-input">
           <div class="input-label">
             Servings
           </div>
-          <select ng-model="form.type" ng-init="form.type = containerOptions[0]" ng-options="option.value for option in containerOptions" >
-          </select>
+          <input ng-model="form.servings" type="text">
         </label>
         <label class="item item-input item-select">
           <div class="input-label">
             Storage Location
           </div>
-          <select ng-model="form.type" ng-init="form.type = containerOptions[0]" ng-options="option.value for option in containerOptions" >
+          <select ng-model="form.container" ng-options="option.name for option in containers" >
           </select>
         </label>
-        <label class="item item-input item-select">
+        <label class="item item-input">
           <div class="input-label">
             Expires
           </div>
-          <select ng-model="form.type" ng-init="form.type = containerOptions[0]" ng-options="option.value for option in containerOptions" >
-          </select>
+          <input ng-model="form.expires" type="text">
         </label>
       </div>
     </form>
-    <button ng-click="addItemModalProps.executeFn(addItemModalProps.container)"class="button button-block button-balanced ">{{addItemModalProps.buttonName}}</button>
+    <button ng-click="addItemModalProps.executeFn()"class="button button-block button-balanced ">{{addItemModalProps.buttonName}}</button>
     <button ng-click="closeAddItemModal()" class="button button-block button-stable">Cancel</button>
   </ion-content>
 </ion-modal-view>

@@ -86,6 +86,24 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
   // API
   $scope.openAddItemModal = openAddItemModal;
   $scope.closeAddItemModal = closeAddItemModal;
+  $scope.addItem = addItem;
+  $scope.getReadableDate = getReadableDate;
+  $scope.useItem = useItem;
+
+  var ONE_DAY_MILLI = 86400000;
+  var DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var containersRef = firebase.database().ref('containers');
+  $scope.containers = $firebaseArray(containersRef);
+  $scope.containers.$loaded().then(function(data){
+    $scope.form.container = data[0];
+    console.log(data);
+  });
+
+  var itemsRef = firebase.database().ref('items');
+  //var itemsRef = firebase.database().ref('items').orderByChild("containerId").equalTo('-KRRn0YLqe1jTIfQ1XRf');
+  $scope.items = $firebaseArray(itemsRef);
+
 
   //create a temporary user
   $scope.user = {
@@ -95,9 +113,11 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
       email: 'bfiliczkowski@gmail.com',
       password: 'heybob' // need to obfuscate this.
     };
+
+  $scope.form = {};
   $scope.addItemModalProps = {
     buttonName: 'Add',
-    executeFn: null,
+    executeFn: addItem,
     item: null
   };
 
@@ -110,12 +130,107 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
   });
 
   function openAddItemModal(id, item) {
+    $scope.form.container = $scope.containers[0];
     $scope.itemModal.show();
   }
 
   function closeAddItemModal() {
+    resetAddItemForm();
     $scope.itemModal.hide();
   }
+
+  function addItem(){
+    var containerId = $scope.form.container.$id;
+    var item = {
+      name: $scope.form.name,
+      servings: $scope.form.servings,
+      expiresIn: $scope.form.expires,
+      containerId: containerId,
+      addedDate: firebase.database.ServerValue.TIMESTAMP,
+      expDate: new Date(Date.now() + $scope.form.expires * ONE_DAY_MILLI).getTime()
+    };
+    firebase.database().ref('items').push(item);
+    closeAddItemModal();
+  }
+
+  function getContainerId() {
+    var containerKey;
+    for(var container in $scope.containers){
+      if(container.name == $scope.form.container){
+        containerKey = container.$id;
+      }
+    }
+  }
+
+  function resetAddItemForm(){
+    $scope.form = {};
+  }
+
+  function useItem(item){
+    if(item.servings > 1){
+      item.servings -= 1;
+      $scope.items.$save(item);
+    } else {
+      $scope.items.$remove(item);
+    }
+  }
+
+  function getReadableDate(date){
+
+
+    if(isToday(date)){
+      return 'Today';
+    } else if(isTomorrow(date)) {
+      return 'Tomorrow';
+    } else if(withinAWeek(date)) {
+      var dayOfWeek = new Date(date).getDay();
+      return DAYS_OF_WEEK[dayOfWeek];
+    } else if(isExpired(date)){
+      return 'Expired';
+    } else {
+      var date = new Date(date);
+      var month = MONTHS[date.getMonth()];
+      var day = date.getDate();
+      return month + ' ' + day;
+    }
+  }
+
+  function isExpired(date){
+    return date < getToday().getTime();
+  }
+
+  function isToday(date) {
+    var today = getToday().getTime();
+    var tomorrow = getTomorrow().getTime();
+
+    return today < date && date < tomorrow;
+  }
+
+  function isTomorrow(date){
+    var tomorrow = getTomorrow().getTime();
+    var nextDay = new Date(tomorrow + ONE_DAY_MILLI);
+    return tomorrow < date && date < nextDay;
+  }
+
+  function withinAWeek(date){
+    var twoDaysFromToday = getToday().getTime() + 2 * ONE_DAY_MILLI ;
+    var weekFromToday = twoDaysFromToday + 3 * ONE_DAY_MILLI;
+    return twoDaysFromToday < date && date < weekFromToday;
+  }
+
+  function getToday(){
+    var todayStart = new Date(Date.now());
+    todayStart.setHours(0);
+    todayStart.setMinutes(0);
+    todayStart.setSeconds(0);
+    return todayStart;
+  }
+
+  function getTomorrow() {
+    var today = getToday();
+    return new Date(today.getTime() + ONE_DAY_MILLI);
+  }
+
 
 }
 
@@ -130,8 +245,7 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
   $scope.closeAddContainerModal = closeAddContainerModal;
 
   //variables
-  var containersRef = firebase.database().ref('containers');
-  $scope.containers = $firebaseObject(containersRef);
+
   $scope.form = {};
   $scope.containerOptions = [
     {name: 'Fridge', value: 'Fridge'},
@@ -143,10 +257,8 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
     container: null
   };
 
-  function removeContainer(id, container) {
-    var ref = firebase.database().ref('containers/' + id);
-    var obj = $firebaseObject(ref);
-    obj.$remove();
+  function removeContainer(container) {
+    $scope.containers.$remove(container);
   }
   function addContainer() {
     var container = {
@@ -160,7 +272,7 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
   function updateContainer(container){
     container.name = $scope.form.name;
     container.type = $scope.form.type.value;
-    $scope.containers.$save();
+    $scope.containers.$save(container);
     $scope.closeAddContainerModal();
 
   }
@@ -177,8 +289,8 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
   }).then(function(modal) {
     $scope.containerModal = modal;
   });
-  function openAddContainerModal(id, container) {
-    if(!id) { // implied Add
+  function openAddContainerModal(container) {
+    if(!container) { // implied Add
       $scope.modalProps = {
         buttonName: 'Add',
         executeFn: addContainer
