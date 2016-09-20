@@ -31,21 +31,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="tabs.tpl.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/www/tabs/tabs.tpl.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="app.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/www/js/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-8.333333">
-              <caret line="104" column="54" selection-start-line="104" selection-start-column="54" selection-end-line="104" selection-end-column="54" />
+            <state vertical-scroll-proportion="-34.444443">
+              <caret line="104" column="61" selection-start-line="104" selection-start-column="61" selection-end-line="104" selection-end-column="61" />
               <folding />
             </state>
           </provider>
@@ -107,14 +97,34 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="expiring.tpl.html" pinned="false" current-in-tab="true">
+      <file leaf-file-name="expiring.tpl.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/www/expiring/expiring.tpl.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.07293355">
-              <caret line="3" column="20" selection-start-line="3" selection-start-column="20" selection-end-line="3" selection-end-column="20" />
+            <state vertical-scroll-proportion="-1.875">
+              <caret line="3" column="38" selection-start-line="3" selection-start-column="38" selection-end-line="3" selection-end-column="38" />
               <folding>
                 <element signature="n#style#0;n#span#1;n#li#0;n#ul#0;n#ion-content#0;n#ion-view#0;n#!!top" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="stats.tpl.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/www/stats/stats.tpl.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-3.125">
+              <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="settings.tpl.html" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/www/settings/settings.tpl.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.09724473">
+              <caret line="4" column="11" selection-start-line="4" selection-start-column="11" selection-end-line="4" selection-end-column="11" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -127,14 +137,16 @@
         <option value="$PROJECT_DIR$/www/containers/detailListCtrl.js" />
         <option value="$PROJECT_DIR$/www/index.html" />
         <option value="$PROJECT_DIR$/scss/ionic.app.scss" />
-        <option value="$PROJECT_DIR$/www/js/app.js" />
         <option value="$PROJECT_DIR$/www/lib/ionic/scss/_variables.scss" />
         <option value="$PROJECT_DIR$/www/containers/containers.tpl.html" />
         <option value="$PROJECT_DIR$/www/addItem/addItem.tpl.html" />
         <option value="$PROJECT_DIR$/www/containers/addContainerModal.tpl.html" />
         <option value="$PROJECT_DIR$/www/css/style.css" />
         <option value="$PROJECT_DIR$/www/containers/detailList.tpl.html" />
+        <option value="$PROJECT_DIR$/www/js/app.js" />
         <option value="$PROJECT_DIR$/www/expiring/expiring.tpl.html" />
+        <option value="$PROJECT_DIR$/www/stats/stats.tpl.html" />
+        <option value="$PROJECT_DIR$/www/settings/settings.tpl.html" />
       </list>
     </option>
   </component>
@@ -524,14 +536,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/www/js/app.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.333333">
-          <caret line="104" column="54" selection-start-line="104" selection-start-column="54" selection-end-line="104" selection-end-column="54" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scss/ionic.app.scss">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.36466774">
@@ -602,13 +606,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/www/js/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-34.444443">
+          <caret line="104" column="61" selection-start-line="104" selection-start-column="61" selection-end-line="104" selection-end-column="61" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/www/expiring/expiring.tpl.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.07293355">
-          <caret line="3" column="20" selection-start-line="3" selection-start-column="20" selection-end-line="3" selection-end-column="20" />
+        <state vertical-scroll-proportion="-1.875">
+          <caret line="3" column="38" selection-start-line="3" selection-start-column="38" selection-end-line="3" selection-end-column="38" />
           <folding>
             <element signature="n#style#0;n#span#1;n#li#0;n#ul#0;n#ion-content#0;n#ion-view#0;n#!!top" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/www/stats/stats.tpl.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.125">
+          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/www/settings/settings.tpl.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.09724473">
+          <caret line="4" column="11" selection-start-line="4" selection-start-column="11" selection-end-line="4" selection-end-column="11" />
+          <folding />
         </state>
       </provider>
     </entry>

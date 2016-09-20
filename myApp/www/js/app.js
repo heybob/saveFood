@@ -102,7 +102,7 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
   $scope.useItem = useItem;
 
   var ONE_DAY_MILLI = 86400000;
-  var DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fr', 'Sat'];
+  var DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var containersRef = firebase.database().ref('containers');
   $scope.containers = $firebaseArray(containersRef);
