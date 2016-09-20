@@ -74,7 +74,18 @@ app.config(function($stateProvider, $urlRouterProvider) {
         templateUrl: 'settings/settings.tpl.html'
       }
     }
-  });
+  }).state('tabs.conDetails', {
+      url: '/conDetails',
+      params: {
+        container: null
+      },
+      views: {
+        'tab-containers':  {
+          templateUrl: 'containers/detailList.tpl.html',
+          controller: 'savingFood.detailListCtrl'
+        }
+      }
+    });
   // if none of the above states are matched, use this as the fallback
    $urlRouterProvider.otherwise("/tab/expiring");
 });
@@ -91,7 +102,7 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
   $scope.useItem = useItem;
 
   var ONE_DAY_MILLI = 86400000;
-  var DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fr', 'Sat'];
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var containersRef = firebase.database().ref('containers');
   $scope.containers = $firebaseArray(containersRef);
@@ -166,12 +177,12 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
     $scope.form = {};
   }
 
-  function useItem(item){
+  function useItem(collection, item){
     if(item.servings > 1){
       item.servings -= 1;
-      $scope.items.$save(item);
+      collection.$save(item);
     } else {
-      $scope.items.$remove(item);
+      collection.$remove(item);
     }
   }
 
@@ -243,6 +254,7 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
   $scope.removeContainer = removeContainer;
   $scope.openAddContainerModal =  openAddContainerModal;
   $scope.closeAddContainerModal = closeAddContainerModal;
+  $scope.toggleEditMode = toggleEditMode;
 
   //variables
 
@@ -256,6 +268,7 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
     executeFn: null,
     container: null
   };
+  $scope.editMode = false;
 
   function removeContainer(container) {
     $scope.containers.$remove(container);
@@ -316,6 +329,10 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
     $scope.containerModal.hide();
   }
 
+  function toggleEditMode(){
+    $scope.editMode = !$scope.editMode;
+  }
+
   // Cleanup the modal when we're done with it!
   $scope.$on('$destroy', function() {
     clearForm();
@@ -330,4 +347,14 @@ function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
   $scope.$on('modal.removed', function() {
     // Execute action
   });
+}
+app.controller('savingFood.detailListCtrl', detailListCtrl);
+detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray'];
+function detailListCtrl($scope, $state, $firebaseArray){
+
+  $scope.container = $state.params.container;
+  if($scope.container){
+    var detItemsRef = firebase.database().ref('items').orderByChild("containerId").equalTo($scope.container.$id);
+    $scope.itemsDetail = $firebaseArray(detItemsRef);
+  }
 }

@@ -4,33 +4,26 @@
   </ion-header-bar>
   <ion-content class="padding">
     <form>
-      <div class="list">
-        <label class="item item-input">
-          <span class="input-label">Item Name</span>
-          <input ng-model="form.name" type="text">
-        </label>
-        <label class="item item-input">
-          <div class="input-label">
-            Servings
-          </div>
-          <input ng-model="form.servings" type="text">
-        </label>
-        <label class="item item-input item-select">
-          <div class="input-label">
-            Storage Location
-          </div>
-          <select ng-model="form.container" ng-options="option.name for option in containers" >
-          </select>
-        </label>
-        <label class="item item-input">
-          <div class="input-label">
-            Expires
-          </div>
-          <input ng-model="form.expires" type="text">
-        </label>
-      </div>
+      <label class="item item-input">
+        <input ng-model="form.name" type="text" placeholder="Item Name">
+      </label>
+      <label class="item item-input">
+        <input ng-model="form.servings" type="text" placeholder="Servings">
+      </label>
+      <label class="item item-input">
+        <input ng-model="form.expires" type="text" placeholder="Expires in ">
+      </label>
+      <label class="item item-input item-select">
+        <div class="input-label">
+          Storage Location
+        </div>
+        <select ng-model="form.container" ng-options="option.name for option in containers">
+        </select>
+      </label>
     </form>
-    <button ng-click="addItemModalProps.executeFn()"class="button button-block button-balanced ">{{addItemModalProps.buttonName}}</button>
+    <button ng-click="addItemModalProps.executeFn()" class="button button-block button-balanced ">
+      {{addItemModalProps.buttonName}}
+    </button>
     <button ng-click="closeAddItemModal()" class="button button-block button-stable">Cancel</button>
   </ion-content>
 </ion-modal-view>

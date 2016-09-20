@@ -1,13 +1,13 @@
 <ion-view title="expiring">
   <ion-content class="padding">
   <h1>Expiring Items</h1>
+    <p class="subtle" ng-if="items.length === 0">You have no items at this time.</p>
     <div class="list"></div>
     <ul>
-      <li ng-if="items.length === 0">You have no items at this time.</li>
       <li class="item item-button-right" ng-repeat="item in items | orderBy: 'expDate'">
         <span>{{item.servings}} &nbsp; &nbsp;{{item.name}}</span>
-        <span  style="float: right; color: #ccc">{{getReadableDate(item.expDate)}}</span>
-        <button class="button button-icon ion-fork" ng-click="useItem(item)"></button>
+        <span  style="float: right; color: #ccc; margin-right: 20px">{{getReadableDate(item.expDate)}}</span>
+        <button class="button button-outline button-balanced" ng-click="useItem(items, item)">Eat</button>
       </li>
     </ul>
   </ion-content>
