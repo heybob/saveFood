@@ -22,9 +22,14 @@ function dataService($firebaseArray, dateFormatterService){
     return numExpiredItems;
   }
 
+  function isExpired(item){
+    return item.expDate < today;
+  }
+
   return {
     items: items,
     getAllItems: getAllItems,
-    getNumExpiredItems: getNumExpiredItems
+    getNumExpiredItems: getNumExpiredItems,
+    isExpired: isExpired
   };
 }

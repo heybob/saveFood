@@ -5,3 +5,8 @@
 .subtle {
   color: #ccc;
 }
+
+/* Centers Graph */
+.sf-pie-graph .nvd3-svg {
+  margin: 0 auto;
+}

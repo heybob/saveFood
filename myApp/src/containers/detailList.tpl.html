@@ -7,10 +7,11 @@
         {{container.name}}
       </div>
       <ul>
-        <li class="item item-button-right" ng-repeat="item in itemsDetail | orderBy: 'expDate'">
+        <li ng-if="!item.hidden" class="item item-button-right" ng-repeat="item in itemsDetail | orderBy: 'expDate'">
           <span>{{item.servings}} &nbsp; &nbsp;{{item.name}}</span>
           <span  style="float: right; color: #ccc; margin-right: 20px">{{getReadableDate(item.expDate)}}</span>
-          <button class="button button-outline button-balanced" ng-click="useItem(itemsDetail, item)">Eat</button>
+          <button ng-if="!isExpired(item)" class="button button-outline button-balanced" ng-click="useItem(itemsDetail, item)">Eat</button>
+          <button ng-if="isExpired(item)" class="button button-outline button-balanced" ng-click="hideItem(itemsDetail, item)">Hide</button>
         </li>
       </ul>
     </div>

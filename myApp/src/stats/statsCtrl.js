@@ -5,6 +5,11 @@ statsCtrl.$inject = ['$scope', 'dataService', '$timeout'];
 function statsCtrl($scope, dataService, $timeout) {
   var vm = this;
   var c10 = d3.scale.category10();
+  vm.items = null;
+
+  $scope.$watch('vm.items', function(newval, oldval){
+    console.log(newval);
+  });
 
   $scope.$on("$ionicView.beforeEnter", function() {
     if(vm.items){

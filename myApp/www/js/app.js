@@ -92,8 +92,8 @@ app.config(function($stateProvider, $urlRouterProvider) {
 });
 
 angular.module('savingFood').controller('savingFood.containerCtrl', containerCtrl);
-containerCtrl.$inject = ['$scope','$ionicModal'];
-function containerCtrl($scope, $ionicModal) {
+containerCtrl.$inject = ['$scope','$ionicModal', '$ionicActionSheet'];
+function containerCtrl($scope, $ionicModal, $ionicActionSheet) {
 
   //Public Methods
   $scope.addContainer = addContainer;
@@ -103,7 +103,7 @@ function containerCtrl($scope, $ionicModal) {
   $scope.toggleEditMode = toggleEditMode;
 
   //variables
-
+  var hideSheet;
   $scope.form = {};
   $scope.containerOptions = [
     {name: 'Fridge', value: 'Fridge'},
@@ -117,6 +117,11 @@ function containerCtrl($scope, $ionicModal) {
   $scope.editMode = false;
 
   function removeContainer(container) {
+    var con = container;
+    var deleteFn = function(){deleteContainer.call(this,container); hideSheet()};
+    showDeleteConfirmation(deleteFn, container);
+  }
+  function deleteContainer(container){
     $scope.containers.$remove(container);
   }
   function addContainer() {
@@ -179,6 +184,21 @@ function containerCtrl($scope, $ionicModal) {
     $scope.editMode = !$scope.editMode;
   }
 
+  //======= Action Sheet ========/
+  function showDeleteConfirmation(action, container) {
+
+    // Show the action sheet
+    hideSheet = $ionicActionSheet.show({
+      destructiveText: 'Delete',
+      titleText: 'Delete ' + container.name +' and it\'s contents?',
+      cancelText: 'Cancel',
+      cancel: function() {
+        hideSheet();
+      },
+      destructiveButtonClicked: action
+    });
+  }
+
   // Cleanup the modal when we're done with it!
   $scope.$on('$destroy', function() {
     clearForm();
@@ -196,13 +216,28 @@ function containerCtrl($scope, $ionicModal) {
 }
 
 angular.module('savingFood').controller('savingFood.detailListCtrl', detailListCtrl);
-detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray'];
-function detailListCtrl($scope, $state, $firebaseArray){
+detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray', 'dataService'];
+function detailListCtrl($scope, $state, $firebaseArray, dataService){
+
+  var vm = this;
+
+  // Public
+  $scope.isExpired = isExpired;
+  $scope.hideItem = hideItem;
 
   $scope.container = $state.params.container;
   if($scope.container){
     var detItemsRef = firebase.database().ref('items').orderByChild("containerId").equalTo($scope.container.$id);
     $scope.itemsDetail = $firebaseArray(detItemsRef);
+  }
+
+  function isExpired(item){
+    return dataService.isExpired(item);
+  }
+
+  function hideItem(itemsDetail, item){
+    item.hidden = true;
+    itemsDetail.$save(item);
   }
 }
 
@@ -307,6 +342,11 @@ statsCtrl.$inject = ['$scope', 'dataService', '$timeout'];
 function statsCtrl($scope, dataService, $timeout) {
   var vm = this;
   var c10 = d3.scale.category10();
+  vm.items = null;
+
+  $scope.$watch('vm.items', function(newval, oldval){
+    console.log(newval);
+  });
 
   $scope.$on("$ionicView.beforeEnter", function() {
     if(vm.items){
@@ -412,10 +452,15 @@ function dataService($firebaseArray, dateFormatterService){
     return numExpiredItems;
   }
 
+  function isExpired(item){
+    return item.expDate < today;
+  }
+
   return {
     items: items,
     getAllItems: getAllItems,
-    getNumExpiredItems: getNumExpiredItems
+    getNumExpiredItems: getNumExpiredItems,
+    isExpired: isExpired
   };
 }
 

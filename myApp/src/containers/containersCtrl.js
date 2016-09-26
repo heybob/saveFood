@@ -1,6 +1,6 @@
 angular.module('savingFood').controller('savingFood.containerCtrl', containerCtrl);
-containerCtrl.$inject = ['$scope','$ionicModal'];
-function containerCtrl($scope, $ionicModal) {
+containerCtrl.$inject = ['$scope','$ionicModal', '$ionicActionSheet'];
+function containerCtrl($scope, $ionicModal, $ionicActionSheet) {
 
   //Public Methods
   $scope.addContainer = addContainer;
@@ -10,7 +10,7 @@ function containerCtrl($scope, $ionicModal) {
   $scope.toggleEditMode = toggleEditMode;
 
   //variables
-
+  var hideSheet;
   $scope.form = {};
   $scope.containerOptions = [
     {name: 'Fridge', value: 'Fridge'},
@@ -24,6 +24,11 @@ function containerCtrl($scope, $ionicModal) {
   $scope.editMode = false;
 
   function removeContainer(container) {
+    var con = container;
+    var deleteFn = function(){deleteContainer.call(this,container); hideSheet()};
+    showDeleteConfirmation(deleteFn, container);
+  }
+  function deleteContainer(container){
     $scope.containers.$remove(container);
   }
   function addContainer() {
@@ -84,6 +89,21 @@ function containerCtrl($scope, $ionicModal) {
 
   function toggleEditMode(){
     $scope.editMode = !$scope.editMode;
+  }
+
+  //======= Action Sheet ========/
+  function showDeleteConfirmation(action, container) {
+
+    // Show the action sheet
+    hideSheet = $ionicActionSheet.show({
+      destructiveText: 'Delete',
+      titleText: 'Delete ' + container.name +' and it\'s contents?',
+      cancelText: 'Cancel',
+      cancel: function() {
+        hideSheet();
+      },
+      destructiveButtonClicked: action
+    });
   }
 
   // Cleanup the modal when we're done with it!
