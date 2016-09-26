@@ -1,109 +1,223 @@
 // Initialize Firebase
-  var config = {
-    apiKey: "AIzaSyDkT1Ozv1WFOVPG18AJylS7rsIxj46fjZc",
-    authDomain: "save-food-cba1b.firebaseapp.com",
-    databaseURL: "https://save-food-cba1b.firebaseio.com",
-    storageBucket: "save-food-cba1b.appspot.com"
-  };
-  firebase.initializeApp(config);
-  var database = firebase.database();
+var config = {
+  apiKey: "AIzaSyDkT1Ozv1WFOVPG18AJylS7rsIxj46fjZc",
+  authDomain: "save-food-cba1b.firebaseapp.com",
+  databaseURL: "https://save-food-cba1b.firebaseio.com",
+  storageBucket: "save-food-cba1b.appspot.com"
+};
+firebase.initializeApp(config);
+var database = firebase.database();
 
 // Ionic Starter App
 
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
-var app = angular.module('savingFood', ['ionic', 'firebase'])
+var app = angular.module('savingFood', ['ionic', 'firebase', 'nvd3'])
 
-.run(function($ionicPlatform) {
-  $ionicPlatform.ready(function() {
-    if(window.cordova && window.cordova.plugins.Keyboard) {
-      // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-      // for form inputs)
-      cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+  .run(function($ionicPlatform) {
+    $ionicPlatform.ready(function() {
+      if(window.cordova && window.cordova.plugins.Keyboard) {
+        // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+        // for form inputs)
+        cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
 
-      // Don't remove this line unless you know what you are doing. It stops the viewport
-      // from snapping when text inputs are focused. Ionic handles this internally for
-      // a much nicer keyboard experience.
-      cordova.plugins.Keyboard.disableScroll(true);
-    }
-    if(window.StatusBar) {
-      StatusBar.styleDefault();
-    }
+        // Don't remove this line unless you know what you are doing. It stops the viewport
+        // from snapping when text inputs are focused. Ionic handles this internally for
+        // a much nicer keyboard experience.
+        cordova.plugins.Keyboard.disableScroll(true);
+      }
+      if(window.StatusBar) {
+        StatusBar.styleDefault();
+      }
+    });
   });
-});
 
 //============ Configuration ===============/
 
 app.config(function($stateProvider, $urlRouterProvider) {
   $stateProvider
-  .state('tabs', {
-    url: "/tab",
-    abstract: true,
-     templateUrl: "tabs/tabs.tpl.html"
- })
-  .state('tabs.expiring', {
-    url: '/expiring',
-    views: {
-      'tab-expiring': {
-        templateUrl: 'expiring/expiring.tpl.html'
+    .state('tabs', {
+      url: "/tab",
+      abstract: true,
+      templateUrl: "templates/tabs/tabs.tpl.html"
+    })
+    .state('tabs.expiring', {
+      url: '/expiring',
+      views: {
+        'tab-expiring': {
+          templateUrl: 'templates/expiring/expiring.tpl.html'
+        }
       }
-    }
-  })
-  .state('tabs.containers', {
-    url: '/containers',
-    views: {
-      'tab-containers': {
-        templateUrl: 'containers/containers.tpl.html',
-        controller: 'savingFood.containerCtrl'
+    })
+    .state('tabs.containers', {
+      url: '/containers',
+      views: {
+        'tab-containers': {
+          templateUrl: 'templates/containers/containers.tpl.html',
+          controller: 'savingFood.containerCtrl'
+        }
       }
-    }
-  })
-  .state('tabs.stats', {
-    url: '/stats',
-    views: {
-      'tab-stats': {
-        templateUrl: 'stats/stats.tpl.html'
+    })
+    .state('tabs.stats', {
+      url: '/stats',
+      views: {
+        'tab-stats': {
+          templateUrl: 'templates/stats/stats.tpl.html',
+          controller: 'savingFood.statsCtrl'
+        }
       }
-    }
-  })
-  .state('tabs.settings', {
-    url: '/settings',
-    views: {
-      'tab-settings': {
-        templateUrl: 'settings/settings.tpl.html'
+    })
+    .state('tabs.settings', {
+      url: '/settings',
+      views: {
+        'tab-settings': {
+          templateUrl: 'templates/settings/settings.tpl.html'
+        }
       }
-    }
-  }).state('tabs.conDetails', {
+    }).state('tabs.conDetails', {
       url: '/conDetails',
       params: {
         container: null
       },
       views: {
         'tab-containers':  {
-          templateUrl: 'containers/detailList.tpl.html',
+          templateUrl: 'templates/containers/detailList.tpl.html',
           controller: 'savingFood.detailListCtrl'
         }
       }
     });
   // if none of the above states are matched, use this as the fallback
-   $urlRouterProvider.otherwise("/tab/expiring");
+  $urlRouterProvider.otherwise("/tab/expiring");
 });
 
-app.controller('savingFood.homeCtrl', homeCtrl);
-homeCtrl.$inject = ['$scope', '$firebaseArray', '$firebaseObject', '$state', '$ionicModal'];
-function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
+angular.module('savingFood').controller('savingFood.containerCtrl', containerCtrl);
+containerCtrl.$inject = ['$scope','$ionicModal'];
+function containerCtrl($scope, $ionicModal) {
+
+  //Public Methods
+  $scope.addContainer = addContainer;
+  $scope.removeContainer = removeContainer;
+  $scope.openAddContainerModal =  openAddContainerModal;
+  $scope.closeAddContainerModal = closeAddContainerModal;
+  $scope.toggleEditMode = toggleEditMode;
+
+  //variables
+
+  $scope.form = {};
+  $scope.containerOptions = [
+    {name: 'Fridge', value: 'Fridge'},
+    {name: 'Freezer', value: 'Freezer'}
+  ];
+  $scope.modalProps = {
+    buttonName: undefined,
+    executeFn: null,
+    container: null
+  };
+  $scope.editMode = false;
+
+  function removeContainer(container) {
+    $scope.containers.$remove(container);
+  }
+  function addContainer() {
+    var container = {
+      name: $scope.form.name,
+      type: $scope.form.type.value
+    };
+    firebase.database().ref('containers').push(container);
+    $scope.closeAddContainerModal();
+  }
+
+  function updateContainer(container){
+    container.name = $scope.form.name;
+    container.type = $scope.form.type.value;
+    $scope.containers.$save(container);
+    $scope.closeAddContainerModal();
+
+  }
+
+  function clearForm(){
+    $scope.form.name = undefined;
+    $scope.form.type = $scope.containerOptions[0];
+  }
+
+  $ionicModal.fromTemplateUrl('templates/containers/addContainerModal.tpl.html', {
+    scope: $scope,
+    animation: 'slide-in-up',
+    focusFirstInput: true
+  }).then(function(modal) {
+    $scope.containerModal = modal;
+  });
+  function openAddContainerModal(container) {
+    if(!container) { // implied Add
+      $scope.modalProps = {
+        buttonName: 'Add',
+        executeFn: addContainer
+      };
+    } else {
+      $scope.modalProps = {
+        buttonName: 'Update',
+        executeFn: updateContainer,
+        container: container
+      };
+      $scope.form.name = container.name;
+      if(container.type === 'Fridge'){
+        $scope.form.type = $scope.containerOptions[0];
+      } else {
+        $scope.form.type = $scope.containerOptions[1];
+      }
+    }
+    $scope.containerModal.show();
+  }
+
+  function closeAddContainerModal() {
+    clearForm();
+    $scope.containerModal.hide();
+  }
+
+  function toggleEditMode(){
+    $scope.editMode = !$scope.editMode;
+  }
+
+  // Cleanup the modal when we're done with it!
+  $scope.$on('$destroy', function() {
+    clearForm();
+    $scope.containerModal.remove();
+
+  });
+  // Execute action on hide modal
+  $scope.$on('modal.hidden', function() {
+    // Execute action
+  });
+  // Execute action on remove modal
+  $scope.$on('modal.removed', function() {
+    // Execute action
+  });
+}
+
+angular.module('savingFood').controller('savingFood.detailListCtrl', detailListCtrl);
+detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray'];
+function detailListCtrl($scope, $state, $firebaseArray){
+
+  $scope.container = $state.params.container;
+  if($scope.container){
+    var detItemsRef = firebase.database().ref('items').orderByChild("containerId").equalTo($scope.container.$id);
+    $scope.itemsDetail = $firebaseArray(detItemsRef);
+  }
+}
+
+angular.module('savingFood').controller('savingFood.homeCtrl', homeCtrl);
+homeCtrl.$inject = ['$scope', '$firebaseArray', '$firebaseObject', '$state', '$ionicModal', 'dateFormatterService', 'dataService'];
+function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal, dateFormatterService, dataService){
 
   // API
   $scope.openAddItemModal = openAddItemModal;
   $scope.closeAddItemModal = closeAddItemModal;
-  $scope.addItem = addItem;
   $scope.getReadableDate = getReadableDate;
   $scope.useItem = useItem;
+  $scope.addItem = addItem;
+  $scope.notExpired = notExpired;
 
-  var ONE_DAY_MILLI = 86400000;
-  var DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var containersRef = firebase.database().ref('containers');
   $scope.containers = $firebaseArray(containersRef);
   $scope.containers.$loaded().then(function(data){
@@ -113,17 +227,17 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
 
   var itemsRef = firebase.database().ref('items');
   //var itemsRef = firebase.database().ref('items').orderByChild("containerId").equalTo('-KRRn0YLqe1jTIfQ1XRf');
-  $scope.items = $firebaseArray(itemsRef);
+  $scope.items = dataService.getAllItems();
 
 
   //create a temporary user
   $scope.user = {
-      id: 'bfiliczkowski',
-      firstName: 'Bob',
-      lastName: 'Filiczkowski',
-      email: 'bfiliczkowski@gmail.com',
-      password: 'heybob' // need to obfuscate this.
-    };
+    id: 'bfiliczkowski',
+    firstName: 'Bob',
+    lastName: 'Filiczkowski',
+    email: 'bfiliczkowski@gmail.com',
+    password: 'heybob' // need to obfuscate this.
+  };
 
   $scope.form = {};
   $scope.addItemModalProps = {
@@ -132,7 +246,7 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
     item: null
   };
 
-  $ionicModal.fromTemplateUrl('addItem/addItem.tpl.html', {
+  $ionicModal.fromTemplateUrl('templates/addItem/addItem.tpl.html', {
     scope: $scope,
     animation: 'slide-in-up',
     focusFirstInput: true
@@ -150,6 +264,10 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
     $scope.itemModal.hide();
   }
 
+  function resetAddItemForm(){
+    $scope.form = {};
+  }
+
   function addItem(){
     var containerId = $scope.form.container.$id;
     var item = {
@@ -158,23 +276,11 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
       expiresIn: $scope.form.expires,
       containerId: containerId,
       addedDate: firebase.database.ServerValue.TIMESTAMP,
-      expDate: new Date(Date.now() + $scope.form.expires * ONE_DAY_MILLI).getTime()
+      expDate: new Date(Date.now() + $scope.form.expires * dateFormatterService.ONE_DAY_MILLI).getTime()
     };
     firebase.database().ref('items').push(item);
+    $scope.$broadcast('itemAdded');
     closeAddItemModal();
-  }
-
-  function getContainerId() {
-    var containerKey;
-    for(var container in $scope.containers){
-      if(container.name == $scope.form.container){
-        containerKey = container.$id;
-      }
-    }
-  }
-
-  function resetAddItemForm(){
-    $scope.form = {};
   }
 
   function useItem(collection, item){
@@ -185,10 +291,143 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
       collection.$remove(item);
     }
   }
+  function getReadableDate(date) {
+    return dateFormatterService.getReadableDate(date);
+  }
+
+  function notExpired(item) {
+    return item.expDate >= dateFormatterService.getToday().getTime();
+  }
+}
+
+angular.module('savingFood').controller('savingFood.statsCtrl', statsCtrl);
+
+statsCtrl.$inject = ['$scope', 'dataService', '$timeout'];
+
+function statsCtrl($scope, dataService, $timeout) {
+  var vm = this;
+  var c10 = d3.scale.category10();
+
+  $scope.$on("$ionicView.beforeEnter", function() {
+    if(vm.items){
+      setExpiringStats();
+      setPieData();
+    }
+  });
+
+  $scope.$on('itemAdded', function(){
+    $scope.$evalAsync(function (){
+      setExpiringStats();
+      setPieData();
+    });
+  });
+
+
+  function setExpiringStats(){
+    vm.expiringCnt = dataService.getNumExpiredItems();
+    vm.totalCnt = dataService.items.length - vm.expiringCnt;
+  }
+
+  $scope.options = {
+    chart: {
+      type: 'pieChart',
+      height: 300,
+      width: 300,
+      color: function(d,i){return c10(i)},
+      x: function(d){return d.key;},
+      y: function(d){return d.y;},
+      showLabels: true,
+      showLegend: false,
+      duration: 500,
+      labelThreshold: 0.01,
+      labelSunbeamLayout: false,
+/*      legend: {
+        margin: {
+          top: 5,
+          right: 35,
+          bottom: 5,
+          left: 0
+        }
+      }
+*/
+    }
+  };
+
+  $scope.data = [
+    {
+      key: "Expired",
+      y: 1
+    },
+    {
+      key: "Good",
+      y: 1
+    }
+  ];
+
+  function init(){
+    vm.items = dataService.getAllItems();
+    vm.items.$loaded(function (){
+      setExpiringStats();
+      setPieData();
+    });
+  }
+
+  function setPieData(){
+    $scope.data = [
+      {
+        key: 'Expired',
+        y: vm.expiringCnt
+      },
+      {
+        key: 'Good',
+        y: vm.totalCnt
+      }
+    ]
+  }
+
+  init();
+}
+
+angular.module('savingFood').factory('dataService', dataService);
+dataService.$inject = ['$firebaseArray', 'dateFormatterService'];
+
+function dataService($firebaseArray, dateFormatterService){
+  var itemsRef = firebase.database().ref('items');
+  var items = $firebaseArray(itemsRef);
+  var today = dateFormatterService.getToday().getTime();
+  var numExpiredItems;
+  var i;
+
+  function getAllItems(){
+    return items;
+  }
+
+  function getNumExpiredItems(){
+    numExpiredItems = 0;
+    for(i = 0; i < items.length; i++) {
+      if(items[i].expDate < today){
+        numExpiredItems++;
+      }
+    }
+    return numExpiredItems;
+  }
+
+  return {
+    items: items,
+    getAllItems: getAllItems,
+    getNumExpiredItems: getNumExpiredItems
+  };
+}
+
+angular.module('savingFood').factory('dateFormatterService', dateFormatterService);
+
+function dateFormatterService(){
+
+  var ONE_DAY_MILLI = 86400000;
+  var DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   function getReadableDate(date){
-
-
     if(isToday(date)){
       return 'Today';
     } else if(isTomorrow(date)) {
@@ -242,119 +481,10 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal){
     return new Date(today.getTime() + ONE_DAY_MILLI);
   }
 
-
-}
-
-app.controller('savingFood.containerCtrl', containerCtrl);
-containerCtrl.$inject = ['$scope', '$firebaseObject', '$state', '$ionicModal'];
-function containerCtrl($scope, $firebaseObject, $state, $ionicModal) {
-
-  //Public Methods
-  $scope.addContainer = addContainer;
-  $scope.removeContainer = removeContainer;
-  $scope.openAddContainerModal =  openAddContainerModal;
-  $scope.closeAddContainerModal = closeAddContainerModal;
-  $scope.toggleEditMode = toggleEditMode;
-
-  //variables
-
-  $scope.form = {};
-  $scope.containerOptions = [
-    {name: 'Fridge', value: 'Fridge'},
-    {name: 'Freezer', value: 'Freezer'}
-  ];
-  $scope.modalProps = {
-    buttonName: undefined,
-    executeFn: null,
-    container: null
+  // Return service API
+  return {
+    ONE_DAY_MILLI: ONE_DAY_MILLI,
+    getReadableDate: getReadableDate,
+    getToday: getToday
   };
-  $scope.editMode = false;
-
-  function removeContainer(container) {
-    $scope.containers.$remove(container);
-  }
-  function addContainer() {
-    var container = {
-      name: $scope.form.name,
-      type: $scope.form.type.value
-    };
-    firebase.database().ref('containers').push(container);
-    $scope.closeAddContainerModal();
-  }
-
-  function updateContainer(container){
-    container.name = $scope.form.name;
-    container.type = $scope.form.type.value;
-    $scope.containers.$save(container);
-    $scope.closeAddContainerModal();
-
-  }
-
-  function clearForm(){
-    $scope.form.name = undefined;
-    $scope.form.type = $scope.containerOptions[0];
-  }
-
-  $ionicModal.fromTemplateUrl('containers/addContainerModal.tpl.html', {
-    scope: $scope,
-    animation: 'slide-in-up',
-    focusFirstInput: true
-  }).then(function(modal) {
-    $scope.containerModal = modal;
-  });
-  function openAddContainerModal(container) {
-    if(!container) { // implied Add
-      $scope.modalProps = {
-        buttonName: 'Add',
-        executeFn: addContainer
-      };
-    } else {
-      $scope.modalProps = {
-        buttonName: 'Update',
-        executeFn: updateContainer,
-        container: container
-      };
-      $scope.form.name = container.name;
-      if(container.type === 'Fridge'){
-        $scope.form.type = $scope.containerOptions[0];
-      } else {
-        $scope.form.type = $scope.containerOptions[1];
-      }
-    }
-    $scope.containerModal.show();
-  }
-
-  function closeAddContainerModal() {
-    clearForm();
-    $scope.containerModal.hide();
-  }
-
-  function toggleEditMode(){
-    $scope.editMode = !$scope.editMode;
-  }
-
-  // Cleanup the modal when we're done with it!
-  $scope.$on('$destroy', function() {
-    clearForm();
-    $scope.containerModal.remove();
-
-  });
-  // Execute action on hide modal
-  $scope.$on('modal.hidden', function() {
-    // Execute action
-  });
-  // Execute action on remove modal
-  $scope.$on('modal.removed', function() {
-    // Execute action
-  });
-}
-app.controller('savingFood.detailListCtrl', detailListCtrl);
-detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray'];
-function detailListCtrl($scope, $state, $firebaseArray){
-
-  $scope.container = $state.params.container;
-  if($scope.container){
-    var detItemsRef = firebase.database().ref('items').orderByChild("containerId").equalTo($scope.container.$id);
-    $scope.itemsDetail = $firebaseArray(detItemsRef);
-  }
 }

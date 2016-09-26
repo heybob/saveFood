@@ -1,0 +1,21 @@
+<ion-view title="containers">
+ <ion-content class="padding">
+   <ul class="list">
+     <div class="item item-divider">
+       <span>My Containers</span>
+       <span><i ng-click="openAddContainerModal()" class="icon ion-ios-plus-empty" style="float: right; margin-right: 5px; font-size: 25px"></i></span>
+       <span ng-click="toggleEditMode()" class="icon ion-edit" ng-class="editMode ? 'button-mode-on' : ''" style="float: right; margin-right: 20px; font-size: 18px"></span>
+     </div>
+    <li class="item item-button-right" ng-repeat="container in containers">{{container.name}}
+      <span class="ng-hide" style="float: right; color: #ccc; margin-right:20px">{{container.type}}</span>
+      <div ng-show="editMode" class="buttons">
+        <button class="button button-icon ion-edit" ng-click="openAddContainerModal(container)"></button>
+        <button class="button button-icon ion-trash-a" ng-click="removeContainer(container)"></button>
+      </div>
+      <div ng-show="!editMode" class="buttons">
+        <button  ui-sref="tabs.conDetails({container: container})" class="button button-icon ion-chevron-right"></button>
+      </div>
+    </li>
+   </ul>
+ </ion-content>
+</ion-view>

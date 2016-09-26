@@ -4,7 +4,7 @@
     <p class="subtle" ng-if="items.length === 0">You have no items at this time.</p>
     <div class="list"></div>
     <ul>
-      <li class="item item-button-right" ng-repeat="item in items | orderBy: 'expDate'">
+      <li class="item item-button-right" ng-repeat="item in items | orderBy: 'expDate' | filter: notExpired">
         <span>{{item.servings}} &nbsp; &nbsp;{{item.name}}</span>
         <span  style="float: right; color: #ccc; margin-right: 20px">{{getReadableDate(item.expDate)}}</span>
         <button class="button button-outline button-balanced" ng-click="useItem(items, item)">Eat</button>
