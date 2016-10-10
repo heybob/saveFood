@@ -10,3 +10,15 @@
 .sf-pie-graph .nvd3-svg {
   margin: 0 auto;
 }
+
+/* Ionic Customizations */
+.item-divider-button-left {
+  position: absolute;
+  z-index: 3;
+  left: 8px;
+  min-height: 0px;
+  max-height: 20px;
+  top: 8px;
+  line-height: normal;
+}
+

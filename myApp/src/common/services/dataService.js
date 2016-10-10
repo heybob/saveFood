@@ -1,15 +1,63 @@
 angular.module('savingFood').factory('dataService', dataService);
-dataService.$inject = ['$firebaseArray', 'dateFormatterService'];
+dataService.$inject = ['$q','$rootScope', '$firebaseArray', 'dateFormatterService', 'Auth'];
 
-function dataService($firebaseArray, dateFormatterService){
-  var itemsRef = firebase.database().ref('items');
-  var items = $firebaseArray(itemsRef);
+function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth){
+
+  var items, itemsRef, containersRef, containers, defaultContainer;
+  var userId;
+
+
+  //Move To Container Controller
+  //$scope.containers.$loaded().then(function(data){
+  //  $scope.form.container = data[0];
+  //  console.log(data);
+  //});
+
   var today = dateFormatterService.getToday().getTime();
   var numExpiredItems;
   var i;
+  var userItems, itemsRef;
+  var containers, containersRef;
+
+  function initItems(){
+    userId = userId ? userId : Auth.$getAuth().uid;
+    var deferred = $q.defer();
+    if(userItems){
+      deferred.resolve(userItems);
+    } else {
+      itemsRef = firebase.database().ref('items').orderByChild("owner").equalTo(userId);
+      userItems = $firebaseArray(itemsRef);
+      userItems.$loaded(function(data){
+        deferred.resolve(userItems);
+      });
+    }
+    return deferred.promise;
+  }
+
+  function initContainers(){
+    userId = userId ? userId : Auth.$getAuth().uid;
+    var deferred = $q.defer();
+    if(containers){
+      deferred.resolve(containers);
+    } else {
+      containersRef = firebase.database().ref('containers').orderByChild("owner").equalTo(userId);
+      containers = $firebaseArray(containersRef);
+      containers.$loaded(function(data){
+        deferred.resolve(containers);
+      });
+    }
+    return deferred.promise;
+  }
+
+  function init(){
+    var deferred = $q.defer();
+
+    return deferred.promise;
+  }
 
   function getAllItems(){
-    return items;
+    itemsRef = firebase.database().ref('items');
+    return $firebaseArray(itemsRef);
   }
 
   function getNumExpiredItems(){
@@ -27,7 +75,8 @@ function dataService($firebaseArray, dateFormatterService){
   }
 
   return {
-    items: items,
+    initItems: initItems,
+    initContainers: initContainers,
     getAllItems: getAllItems,
     getNumExpiredItems: getNumExpiredItems,
     isExpired: isExpired

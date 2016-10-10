@@ -33,6 +33,16 @@ var app = angular.module('savingFood', ['ionic', 'firebase', 'nvd3'])
     });
   });
 
+app.run(["$rootScope", "$state", function($rootScope, $state) {
+  $rootScope.$on("$stateChangeError", function(event, toState, toParams, fromState, fromParams, error) {
+    // We can catch the error thrown when the $requireSignIn promise is rejected
+    // and redirect the user back to the home page
+    if (error === "AUTH_REQUIRED") {
+      $state.go("login");
+    }
+  });
+}]);
+
 //============ Configuration ===============/
 
 app.config(function($stateProvider, $urlRouterProvider) {
@@ -46,8 +56,17 @@ app.config(function($stateProvider, $urlRouterProvider) {
       url: '/expiring',
       views: {
         'tab-expiring': {
-          templateUrl: 'templates/expiring/expiring.tpl.html'
+          templateUrl: 'templates/expiring/expiring.tpl.html',
+          controller: 'savingFood.expiringCtrl'
         }
+      },
+      resolve: {
+        // controller will not be loaded until $waitForSignIn resolves
+        // Auth refers to our $firebaseAuth wrapper in the factory below
+        "currentAuth": ["Auth", function(Auth) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn();
+        }]
       }
     })
     .state('tabs.containers', {
@@ -72,7 +91,8 @@ app.config(function($stateProvider, $urlRouterProvider) {
       url: '/settings',
       views: {
         'tab-settings': {
-          templateUrl: 'templates/settings/settings.tpl.html'
+          templateUrl: 'templates/settings/settings.tpl.html',
+          controller: 'savingFood.settingsCtrl'
         }
       }
     }).state('tabs.conDetails', {
@@ -86,14 +106,83 @@ app.config(function($stateProvider, $urlRouterProvider) {
           controller: 'savingFood.detailListCtrl'
         }
       }
+    }).state('login', {
+      url: '/login',
+      templateUrl: 'templates/login/login.tpl.html',
+      controller: 'savingFood.loginCtrl'
     });
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise("/tab/expiring");
+  $urlRouterProvider.otherwise("/login");
 });
 
+app.factory("Auth", ["$firebaseAuth",
+  function($firebaseAuth) {
+    return $firebaseAuth();
+  }
+]);
+
+angular.module('savingFood').controller('savingFood.addItemCtrl', addItemCtrl);
+addItemCtrl.$inject = ['$scope', '$ionicModal', '$firebaseArray', 'dateFormatterService', '$rootScope', 'dataService'];
+
+function addItemCtrl($scope, $ionicModal, $firebaseArray, dateFormatterService, $rootScope, dataService){
+
+  $scope.openAddItemModal = openAddItemModal;
+  $scope.closeAddItemModal = closeAddItemModal;
+  $scope.addItem = addItem;
+
+  $scope.addItemModalProps = {
+    buttonName: 'Add',
+    executeFn: addItem,
+    item: null
+  };
+
+  $scope.form = {};
+
+  $ionicModal.fromTemplateUrl('templates/addItem/addItem.tpl.html', {
+    scope: $scope,
+    animation: 'slide-in-up',
+    focusFirstInput: true
+  }).then(function(modal) {
+    $scope.itemModal = modal;
+  });
+
+  function openAddItemModal(id, item) {
+    dataService.initContainers().then(function(data){
+      $scope.containers = data;
+      $scope.form.container = $scope.containers[0];
+      $scope.itemModal.show();
+    });
+  }
+
+  function closeAddItemModal() {
+    resetAddItemForm();
+    $scope.itemModal.hide();
+  }
+
+  function resetAddItemForm(){
+    $scope.form = {};
+  }
+
+  function addItem(){
+    var containerId = $scope.form.container.$id;
+    var item = {
+      name: $scope.form.name,
+      servings: $scope.form.servings,
+      expiresIn: $scope.form.expires,
+      containerId: containerId,
+      addedDate: firebase.database.ServerValue.TIMESTAMP,
+      expDate: new Date(Date.now() + $scope.form.expires * dateFormatterService.ONE_DAY_MILLI).getTime(),
+      owner: $rootScope.user.uid
+    };
+    firebase.database().ref('items').push(item);
+    $scope.$broadcast('itemAdded');
+    closeAddItemModal();
+  }
+}
+
 angular.module('savingFood').controller('savingFood.containerCtrl', containerCtrl);
-containerCtrl.$inject = ['$scope','$ionicModal', '$ionicActionSheet'];
-function containerCtrl($scope, $ionicModal, $ionicActionSheet) {
+containerCtrl.$inject = ['$scope','$ionicModal', '$ionicActionSheet', '$rootScope', '$state', 'dataService'];
+function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $state, dataService) {
 
   //Public Methods
   $scope.addContainer = addContainer;
@@ -101,6 +190,16 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet) {
   $scope.openAddContainerModal =  openAddContainerModal;
   $scope.closeAddContainerModal = closeAddContainerModal;
   $scope.toggleEditMode = toggleEditMode;
+
+  $scope.$on("$ionicView.beforeEnter", function() {
+    if(!$rootScope.user){
+      $state.go('login');
+    }
+  });
+
+  dataService.initContainers().then(function(data){
+    $scope.containers = data;
+  });
 
   //variables
   var hideSheet;
@@ -127,7 +226,8 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet) {
   function addContainer() {
     var container = {
       name: $scope.form.name,
-      type: $scope.form.type.value
+      type: $scope.form.type.value,
+      owner: $rootScope.user.uid
     };
     firebase.database().ref('containers').push(container);
     $scope.closeAddContainerModal();
@@ -216,113 +316,70 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet) {
 }
 
 angular.module('savingFood').controller('savingFood.detailListCtrl', detailListCtrl);
-detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray', 'dataService'];
-function detailListCtrl($scope, $state, $firebaseArray, dataService){
+detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray', 'dataService', 'logService'];
+function detailListCtrl($scope, $state, $firebaseArray, dataService, logService){
 
   var vm = this;
 
   // Public
   $scope.isExpired = isExpired;
-  $scope.hideItem = hideItem;
+  $scope.useItem = useItem;
 
   $scope.container = $state.params.container;
   if($scope.container){
-    var detItemsRef = firebase.database().ref('items').orderByChild("containerId").equalTo($scope.container.$id);
-    $scope.itemsDetail = $firebaseArray(detItemsRef);
+    dataService.initItems().then(function(data){
+      $scope.itemsDetail = data;
+    });
+  }
+
+  function useItem(collection, item){
+    if(item.servings > 1){
+      logService.add(logService.createLogEntryFromItem(item));
+      item.servings -= 1;
+      collection.$save(item);
+    } else {
+      logService.add(logService.createLogEntryFromItem(item));
+      collection.$remove(item);
+    }
   }
 
   function isExpired(item){
     return dataService.isExpired(item);
   }
-
-  function hideItem(itemsDetail, item){
-    item.hidden = true;
-    itemsDetail.$save(item);
-  }
 }
 
-angular.module('savingFood').controller('savingFood.homeCtrl', homeCtrl);
-homeCtrl.$inject = ['$scope', '$firebaseArray', '$firebaseObject', '$state', '$ionicModal', 'dateFormatterService', 'dataService'];
-function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal, dateFormatterService, dataService){
+angular.module('savingFood').controller('savingFood.expiringCtrl', expiringCtrl);
 
-  // API
-  $scope.openAddItemModal = openAddItemModal;
-  $scope.closeAddItemModal = closeAddItemModal;
+expiringCtrl.$inject = ['$scope', 'logService', 'dateFormatterService', '$rootScope', '$state','dataService'];
+
+function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $state, dataService){
+
+  //Api
   $scope.getReadableDate = getReadableDate;
   $scope.useItem = useItem;
-  $scope.addItem = addItem;
   $scope.notExpired = notExpired;
 
-  var containersRef = firebase.database().ref('containers');
-  $scope.containers = $firebaseArray(containersRef);
-  $scope.containers.$loaded().then(function(data){
-    $scope.form.container = data[0];
-    console.log(data);
+  dataService.initItems().then(function(data){
+    $scope.items = data;
   });
 
-  var itemsRef = firebase.database().ref('items');
-  //var itemsRef = firebase.database().ref('items').orderByChild("containerId").equalTo('-KRRn0YLqe1jTIfQ1XRf');
-  $scope.items = dataService.getAllItems();
-
-
-  //create a temporary user
-  $scope.user = {
-    id: 'bfiliczkowski',
-    firstName: 'Bob',
-    lastName: 'Filiczkowski',
-    email: 'bfiliczkowski@gmail.com',
-    password: 'heybob' // need to obfuscate this.
-  };
-
-  $scope.form = {};
-  $scope.addItemModalProps = {
-    buttonName: 'Add',
-    executeFn: addItem,
-    item: null
-  };
-
-  $ionicModal.fromTemplateUrl('templates/addItem/addItem.tpl.html', {
-    scope: $scope,
-    animation: 'slide-in-up',
-    focusFirstInput: true
-  }).then(function(modal) {
-    $scope.itemModal = modal;
+  dataService.initContainers().then(function(data){
+    $scope.containers = data;
   });
 
-  function openAddItemModal(id, item) {
-    $scope.form.container = $scope.containers[0];
-    $scope.itemModal.show();
-  }
-
-  function closeAddItemModal() {
-    resetAddItemForm();
-    $scope.itemModal.hide();
-  }
-
-  function resetAddItemForm(){
-    $scope.form = {};
-  }
-
-  function addItem(){
-    var containerId = $scope.form.container.$id;
-    var item = {
-      name: $scope.form.name,
-      servings: $scope.form.servings,
-      expiresIn: $scope.form.expires,
-      containerId: containerId,
-      addedDate: firebase.database.ServerValue.TIMESTAMP,
-      expDate: new Date(Date.now() + $scope.form.expires * dateFormatterService.ONE_DAY_MILLI).getTime()
-    };
-    firebase.database().ref('items').push(item);
-    $scope.$broadcast('itemAdded');
-    closeAddItemModal();
-  }
+  $scope.$on("$ionicView.beforeEnter", function() {
+    if(!$rootScope.user){
+      $state.go('login');
+    }
+  });
 
   function useItem(collection, item){
     if(item.servings > 1){
+      logService.add(logService.createLogEntryFromItem(item));
       item.servings -= 1;
       collection.$save(item);
     } else {
+      logService.add(logService.createLogEntryFromItem(item));
       collection.$remove(item);
     }
   }
@@ -333,40 +390,91 @@ function homeCtrl($scope, $firebaseArray, $firebaseObject, $state, $ionicModal, 
   function notExpired(item) {
     return item.expDate >= dateFormatterService.getToday().getTime();
   }
+
+
+}
+
+angular.module('savingFood').controller('savingFood.loginCtrl', loginCtrl);
+
+loginCtrl.$inject = ['$rootScope', '$scope', '$state', '$location'];
+
+function loginCtrl($rootScope, $scope, $state) {
+
+
+  firebase.auth().onAuthStateChanged(function(user) {
+    $rootScope.user = user;
+      if (user) {
+        $state.go('tabs.expiring');
+      } else {
+      }
+  });
+  $scope.$on("$ionicView.beforeEnter", function() {
+      init();
+  });
+
+  function init(){
+    $scope.user = {};
+  }
+
+  $scope.login = function() {
+    firebase.auth().signInWithEmailAndPassword($scope.user.email, $scope.user.password).catch(function(error) {
+      // Handle Errors here.
+      var errorCode = error.code;
+      var errorMessage = error.message;
+      // ...
+      console.log(errorCode);
+      console.log(errorMessage);
+    });
+  };
+}
+
+angular.module('savingFood').controller('savingFood.settingsCtrl', settingsCtrl);
+
+settingsCtrl.$inject = ['$scope', '$state', '$location', '$rootScope'];
+
+function settingsCtrl($scope, $state, $location, $rootScope){
+
+  $scope.$on("$ionicView.beforeEnter", function() {
+    if(!$rootScope.user){
+      $state.go('login');
+    }
+  });
+
+  $scope.signOut = function(){
+    //Need to destroy references.
+    firebase.auth().signOut().then(function() {
+      var port = $location.port() === 80 ? '' : ':' + $location.port();
+      var url = $location.protocol() + '://' + $location.host() + port + '/';
+      window.location.href = url;
+      $rootScope.$broadcast('userLogged');
+    }, function(error) {
+      // An error happened.
+    });
+  };
+
 }
 
 angular.module('savingFood').controller('savingFood.statsCtrl', statsCtrl);
 
-statsCtrl.$inject = ['$scope', 'dataService', '$timeout'];
+statsCtrl.$inject = ['$scope', 'dataService', '$timeout', 'logService','$state','$rootScope'];
 
-function statsCtrl($scope, dataService, $timeout) {
+function statsCtrl($scope, dataService, $timeout, logService, $state, $rootScope) {
   var vm = this;
   var c10 = d3.scale.category10();
   vm.items = null;
 
-  $scope.$watch('vm.items', function(newval, oldval){
-    console.log(newval);
+  $scope.$on("$ionicView.beforeEnter", function() {
+    if(!$rootScope.user){
+      $state.go('login');
+    }
   });
 
   $scope.$on("$ionicView.beforeEnter", function() {
     if(vm.items){
-      setExpiringStats();
       setPieData();
     }
   });
 
-  $scope.$on('itemAdded', function(){
-    $scope.$evalAsync(function (){
-      setExpiringStats();
-      setPieData();
-    });
-  });
-
-
-  function setExpiringStats(){
-    vm.expiringCnt = dataService.getNumExpiredItems();
-    vm.totalCnt = dataService.items.length - vm.expiringCnt;
-  }
 
   $scope.options = {
     chart: {
@@ -407,39 +515,87 @@ function statsCtrl($scope, dataService, $timeout) {
   function init(){
     vm.items = dataService.getAllItems();
     vm.items.$loaded(function (){
-      setExpiringStats();
       setPieData();
     });
   }
 
   function setPieData(){
+    var results = logService.getAllTimeStats();
     $scope.data = [
       {
-        key: 'Expired',
-        y: vm.expiringCnt
+        key: "Wasted",
+        y: results.expired
       },
       {
-        key: 'Good',
-        y: vm.totalCnt
+        key: "Used",
+        y: results.used
       }
-    ]
+    ];
   }
 
   init();
 }
 
 angular.module('savingFood').factory('dataService', dataService);
-dataService.$inject = ['$firebaseArray', 'dateFormatterService'];
+dataService.$inject = ['$q','$rootScope', '$firebaseArray', 'dateFormatterService', 'Auth'];
 
-function dataService($firebaseArray, dateFormatterService){
-  var itemsRef = firebase.database().ref('items');
-  var items = $firebaseArray(itemsRef);
+function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth){
+
+  var items, itemsRef, containersRef, containers, defaultContainer;
+  var userId;
+
+
+  //Move To Container Controller
+  //$scope.containers.$loaded().then(function(data){
+  //  $scope.form.container = data[0];
+  //  console.log(data);
+  //});
+
   var today = dateFormatterService.getToday().getTime();
   var numExpiredItems;
   var i;
+  var userItems, itemsRef;
+  var containers, containersRef;
+
+  function initItems(){
+    userId = userId ? userId : Auth.$getAuth().uid;
+    var deferred = $q.defer();
+    if(userItems){
+      deferred.resolve(userItems);
+    } else {
+      itemsRef = firebase.database().ref('items').orderByChild("owner").equalTo(userId);
+      userItems = $firebaseArray(itemsRef);
+      userItems.$loaded(function(data){
+        deferred.resolve(userItems);
+      });
+    }
+    return deferred.promise;
+  }
+
+  function initContainers(){
+    userId = userId ? userId : Auth.$getAuth().uid;
+    var deferred = $q.defer();
+    if(containers){
+      deferred.resolve(containers);
+    } else {
+      containersRef = firebase.database().ref('containers').orderByChild("owner").equalTo(userId);
+      containers = $firebaseArray(containersRef);
+      containers.$loaded(function(data){
+        deferred.resolve(containers);
+      });
+    }
+    return deferred.promise;
+  }
+
+  function init(){
+    var deferred = $q.defer();
+
+    return deferred.promise;
+  }
 
   function getAllItems(){
-    return items;
+    itemsRef = firebase.database().ref('items');
+    return $firebaseArray(itemsRef);
   }
 
   function getNumExpiredItems(){
@@ -457,7 +613,8 @@ function dataService($firebaseArray, dateFormatterService){
   }
 
   return {
-    items: items,
+    initItems: initItems,
+    initContainers: initContainers,
     getAllItems: getAllItems,
     getNumExpiredItems: getNumExpiredItems,
     isExpired: isExpired
@@ -532,4 +689,60 @@ function dateFormatterService(){
     getReadableDate: getReadableDate,
     getToday: getToday
   };
+}
+
+angular.module('savingFood').factory('logService', logService);
+
+logService.$inject = ['$rootScope', '$firebaseArray', 'Auth', 'dataService' ];
+
+function logService($rootScope, $firebaseArray, Auth, dataService){
+
+  var usageLog, log ;
+  var userId = Auth.$getAuth().uid;
+  usageLog = firebase.database().ref('log').orderByChild("creator").equalTo(userId);
+  log = $firebaseArray(usageLog);
+
+
+  var service = {
+    add: addLogEntry,
+    createLogEntryFromItem: createLogEntryFromItem,
+    getAllTimeStats: getAllTimeStats
+  };
+
+  function addLogEntry(params){
+    log.$add(params);
+  }
+
+  function createLogEntryFromItem(item){
+    var logEntry = {
+      name: item.name,
+      addedDate: item.addedDate,
+      expDate: item.expDate,
+      containerId: item.containerId,
+      servingsUsed: 1,
+      creator: $rootScope.user.uid,
+      isExpired: dataService.isExpired(item)
+    };
+    return logEntry;
+  }
+
+  function getAllTimeStats(){
+    var expiredCnt = 0,
+      validCnt = 0,
+      i= 0;
+    for(i; i < log.length; i++){
+     if(log[i].isExpired) {
+       expiredCnt += log[i].servingsUsed;
+     } else {
+       validCnt += 1;
+     }
+    }
+    return {expired: expiredCnt, used: validCnt};
+  }
+
+  function getNumUsedAllTime() {
+
+  }
+
+  return service;
 }

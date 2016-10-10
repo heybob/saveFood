@@ -1,6 +1,6 @@
 angular.module('savingFood').controller('savingFood.containerCtrl', containerCtrl);
-containerCtrl.$inject = ['$scope','$ionicModal', '$ionicActionSheet'];
-function containerCtrl($scope, $ionicModal, $ionicActionSheet) {
+containerCtrl.$inject = ['$scope','$ionicModal', '$ionicActionSheet', '$rootScope', '$state', 'dataService'];
+function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $state, dataService) {
 
   //Public Methods
   $scope.addContainer = addContainer;
@@ -8,6 +8,16 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet) {
   $scope.openAddContainerModal =  openAddContainerModal;
   $scope.closeAddContainerModal = closeAddContainerModal;
   $scope.toggleEditMode = toggleEditMode;
+
+  $scope.$on("$ionicView.beforeEnter", function() {
+    if(!$rootScope.user){
+      $state.go('login');
+    }
+  });
+
+  dataService.initContainers().then(function(data){
+    $scope.containers = data;
+  });
 
   //variables
   var hideSheet;
@@ -34,7 +44,8 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet) {
   function addContainer() {
     var container = {
       name: $scope.form.name,
-      type: $scope.form.type.value
+      type: $scope.form.type.value,
+      owner: $rootScope.user.uid
     };
     firebase.database().ref('containers').push(container);
     $scope.closeAddContainerModal();

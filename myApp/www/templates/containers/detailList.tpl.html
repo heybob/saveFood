@@ -1,21 +1,18 @@
-<ion-view view-title="Details">
-  <ion-nav-bar class="bar-positive"> Blagh
-  </ion-nav-bar>
+<ion-view view-title="{{container.name}} Details">
   <ion-content class="padding">
     <div class="list">
-      <div class="item item-divider">
-        {{container.name}}
+      <div class="item item-divider" style="text-align: center">
+        <span>{{container.name}}</span>
       </div>
       <ul>
-        <li ng-if="!item.hidden" class="item item-button-right" ng-repeat="item in itemsDetail | orderBy: 'expDate'">
+        <li  class="item item-button-right" ng-repeat="item in itemsDetail | orderBy: 'expDate' | filter : container.$id">
           <span>{{item.servings}} &nbsp; &nbsp;{{item.name}}</span>
           <span  style="float: right; color: #ccc; margin-right: 20px">{{getReadableDate(item.expDate)}}</span>
           <button ng-if="!isExpired(item)" class="button button-outline button-balanced" ng-click="useItem(itemsDetail, item)">Eat</button>
-          <button ng-if="isExpired(item)" class="button button-outline button-balanced" ng-click="hideItem(itemsDetail, item)">Hide</button>
+          <button ng-if="isExpired(item)" class="button button-outline button-balanced" ng-click="useItem(itemsDetail, item)">Trash</button>
         </li>
       </ul>
     </div>
     <p class="subtle" ng-if="items.length === 0">You have no items at this time.</p>
-    <a href="#/tab/containers">Go Back</a>
   </ion-content>
 </ion-view>

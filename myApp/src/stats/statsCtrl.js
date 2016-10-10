@@ -1,35 +1,24 @@
 angular.module('savingFood').controller('savingFood.statsCtrl', statsCtrl);
 
-statsCtrl.$inject = ['$scope', 'dataService', '$timeout'];
+statsCtrl.$inject = ['$scope', 'dataService', '$timeout', 'logService','$state','$rootScope'];
 
-function statsCtrl($scope, dataService, $timeout) {
+function statsCtrl($scope, dataService, $timeout, logService, $state, $rootScope) {
   var vm = this;
   var c10 = d3.scale.category10();
   vm.items = null;
 
-  $scope.$watch('vm.items', function(newval, oldval){
-    console.log(newval);
+  $scope.$on("$ionicView.beforeEnter", function() {
+    if(!$rootScope.user){
+      $state.go('login');
+    }
   });
 
   $scope.$on("$ionicView.beforeEnter", function() {
     if(vm.items){
-      setExpiringStats();
       setPieData();
     }
   });
 
-  $scope.$on('itemAdded', function(){
-    $scope.$evalAsync(function (){
-      setExpiringStats();
-      setPieData();
-    });
-  });
-
-
-  function setExpiringStats(){
-    vm.expiringCnt = dataService.getNumExpiredItems();
-    vm.totalCnt = dataService.items.length - vm.expiringCnt;
-  }
 
   $scope.options = {
     chart: {
@@ -70,22 +59,22 @@ function statsCtrl($scope, dataService, $timeout) {
   function init(){
     vm.items = dataService.getAllItems();
     vm.items.$loaded(function (){
-      setExpiringStats();
       setPieData();
     });
   }
 
   function setPieData(){
+    var results = logService.getAllTimeStats();
     $scope.data = [
       {
-        key: 'Expired',
-        y: vm.expiringCnt
+        key: "Wasted",
+        y: results.expired
       },
       {
-        key: 'Good',
-        y: vm.totalCnt
+        key: "Used",
+        y: results.used
       }
-    ]
+    ];
   }
 
   init();

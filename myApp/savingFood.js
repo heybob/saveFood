@@ -33,6 +33,16 @@ var app = angular.module('savingFood', ['ionic', 'firebase', 'nvd3'])
     });
   });
 
+app.run(["$rootScope", "$state", function($rootScope, $state) {
+  $rootScope.$on("$stateChangeError", function(event, toState, toParams, fromState, fromParams, error) {
+    // We can catch the error thrown when the $requireSignIn promise is rejected
+    // and redirect the user back to the home page
+    if (error === "AUTH_REQUIRED") {
+      $state.go("login");
+    }
+  });
+}]);
+
 //============ Configuration ===============/
 
 app.config(function($stateProvider, $urlRouterProvider) {
@@ -46,8 +56,17 @@ app.config(function($stateProvider, $urlRouterProvider) {
       url: '/expiring',
       views: {
         'tab-expiring': {
-          templateUrl: 'templates/expiring/expiring.tpl.html'
+          templateUrl: 'templates/expiring/expiring.tpl.html',
+          controller: 'savingFood.expiringCtrl'
         }
+      },
+      resolve: {
+        // controller will not be loaded until $waitForSignIn resolves
+        // Auth refers to our $firebaseAuth wrapper in the factory below
+        "currentAuth": ["Auth", function(Auth) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn();
+        }]
       }
     })
     .state('tabs.containers', {
@@ -72,7 +91,8 @@ app.config(function($stateProvider, $urlRouterProvider) {
       url: '/settings',
       views: {
         'tab-settings': {
-          templateUrl: 'templates/settings/settings.tpl.html'
+          templateUrl: 'templates/settings/settings.tpl.html',
+          controller: 'savingFood.settingsCtrl'
         }
       }
     }).state('tabs.conDetails', {
@@ -86,7 +106,17 @@ app.config(function($stateProvider, $urlRouterProvider) {
           controller: 'savingFood.detailListCtrl'
         }
       }
+    }).state('login', {
+      url: '/login',
+      templateUrl: 'templates/login/login.tpl.html',
+      controller: 'savingFood.loginCtrl'
     });
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise("/tab/expiring");
+  $urlRouterProvider.otherwise("/login");
 });
+
+app.factory("Auth", ["$firebaseAuth",
+  function($firebaseAuth) {
+    return $firebaseAuth();
+  }
+]);

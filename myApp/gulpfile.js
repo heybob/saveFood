@@ -10,7 +10,7 @@ var sh = require('shelljs');
 
 var paths = {
   sass: ['./scss/**/*.scss'],
-  js: ['src/**/*.js'],
+  js: ['savingFood.js', 'src/**/*.js'],
   templates: ['src/**/*.tpl.html'],
   d3: ['vendor/d3/d3.min.js', 'vendor/nvd3/nv.d3.min.js','vendor/angular-nvd3/angular-nvd3.min.js'],
   css: ['vendor/nvd3/nv.d3.min.css']
@@ -54,7 +54,7 @@ gulp.task('vendorCSS', function() {
         .pipe(copy())
         .pipe(gulp.dest('www/css/'))
 });
-        
+
 
 gulp.task('watch', function() {
   gulp.watch([paths.sass, paths.js, paths.templates], ['scripts', 'templates','d3', 'vendorCSS','sass']);
