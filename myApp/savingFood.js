@@ -15,9 +15,9 @@ var database = firebase.database();
 // the 2nd parameter is an array of 'requires'
 var app = angular.module('savingFood', ['ionic', 'firebase', 'nvd3'])
 
-  .run(function($ionicPlatform) {
-    $ionicPlatform.ready(function() {
-      if(window.cordova && window.cordova.plugins.Keyboard) {
+  .run(function ($ionicPlatform) {
+    $ionicPlatform.ready(function () {
+      if (window.cordova && window.cordova.plugins.Keyboard) {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
         cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
@@ -27,14 +27,14 @@ var app = angular.module('savingFood', ['ionic', 'firebase', 'nvd3'])
         // a much nicer keyboard experience.
         cordova.plugins.Keyboard.disableScroll(true);
       }
-      if(window.StatusBar) {
+      if (window.StatusBar) {
         StatusBar.styleDefault();
       }
     });
   });
 
-app.run(["$rootScope", "$state", function($rootScope, $state) {
-  $rootScope.$on("$stateChangeError", function(event, toState, toParams, fromState, fromParams, error) {
+app.run(["$rootScope", "$state", function ($rootScope, $state) {
+  $rootScope.$on("$stateChangeError", function (event, toState, toParams, fromState, fromParams, error) {
     // We can catch the error thrown when the $requireSignIn promise is rejected
     // and redirect the user back to the home page
     if (error === "AUTH_REQUIRED") {
@@ -45,7 +45,7 @@ app.run(["$rootScope", "$state", function($rootScope, $state) {
 
 //============ Configuration ===============/
 
-app.config(function($stateProvider, $urlRouterProvider) {
+app.config(function ($stateProvider, $urlRouterProvider) {
   $stateProvider
     .state('tabs', {
       url: "/tab",
@@ -63,7 +63,7 @@ app.config(function($stateProvider, $urlRouterProvider) {
       resolve: {
         // controller will not be loaded until $waitForSignIn resolves
         // Auth refers to our $firebaseAuth wrapper in the factory below
-        "currentAuth": ["Auth", function(Auth) {
+        "currentAuth": ["Auth", function (Auth) {
           // $waitForSignIn returns a promise so the resolve waits for it to complete
           return Auth.$waitForSignIn();
         }]
@@ -101,11 +101,15 @@ app.config(function($stateProvider, $urlRouterProvider) {
         container: null
       },
       views: {
-        'tab-containers':  {
+        'tab-containers': {
           templateUrl: 'templates/containers/detailList.tpl.html',
           controller: 'savingFood.detailListCtrl'
         }
       }
+    }).state('register', {
+      url: '/register',
+      templateUrl: 'templates/registration/register.tpl.html',
+      controller: 'savingFood.registerCtrl'
     }).state('login', {
       url: '/login',
       templateUrl: 'templates/login/login.tpl.html',
@@ -116,7 +120,7 @@ app.config(function($stateProvider, $urlRouterProvider) {
 });
 
 app.factory("Auth", ["$firebaseAuth",
-  function($firebaseAuth) {
+  function ($firebaseAuth) {
     return $firebaseAuth();
   }
 ]);
