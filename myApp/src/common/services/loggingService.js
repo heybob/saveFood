@@ -1,13 +1,19 @@
 angular.module('savingFood').factory('logService', logService);
 
-logService.$inject = ['$rootScope', '$firebaseArray', 'Auth', 'dataService' ];
+logService.$inject = ['$rootScope', '$firebaseArray', 'Auth', 'dateFormatterService', '$state' ];
 
-function logService($rootScope, $firebaseArray, Auth, dataService){
+function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $state){
 
-  var usageLog, log ;
-  var userId = Auth.$getAuth().uid;
-  usageLog = firebase.database().ref('log').orderByChild("creator").equalTo(userId);
-  log = $firebaseArray(usageLog);
+  var usageLog, log, userId ;
+
+  Auth.$waitForSignIn().then(function (data){
+    if(!data){
+      $state.go('login');
+    }
+    userId = userId ? userId : Auth.$getAuth().uid;
+    usageLog = firebase.database().ref('log').orderByChild("creator").equalTo(userId);
+    log = $firebaseArray(usageLog);
+  });
 
 
   var service = {
@@ -17,6 +23,7 @@ function logService($rootScope, $firebaseArray, Auth, dataService){
   };
 
   function addLogEntry(params){
+    //Make sure Log exists!
     log.$add(params);
   }
 
@@ -27,8 +34,8 @@ function logService($rootScope, $firebaseArray, Auth, dataService){
       expDate: item.expDate,
       containerId: item.containerId,
       servingsUsed: 1,
-      creator: $rootScope.user.uid,
-      isExpired: dataService.isExpired(item)
+      creator: userId,
+      isExpired: dateFormatterService.isExpired(item)
     };
     return logEntry;
   }

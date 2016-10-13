@@ -10,13 +10,9 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
   $scope.toggleEditMode = toggleEditMode;
 
   $scope.$on("$ionicView.beforeEnter", function() {
-    if(!$rootScope.user){
-      $state.go('login');
-    }
-  });
-
-  dataService.initContainers().then(function(data){
-    $scope.containers = data;
+    dataService.initContainers().then(function(data){
+      $scope.containers = data;
+    });
   });
 
   //variables

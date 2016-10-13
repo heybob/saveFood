@@ -8,17 +8,8 @@ function statsCtrl($scope, dataService, $timeout, logService, $state, $rootScope
   vm.items = null;
 
   $scope.$on("$ionicView.beforeEnter", function() {
-    if(!$rootScope.user){
-      $state.go('login');
-    }
+    setPieData();
   });
-
-  $scope.$on("$ionicView.beforeEnter", function() {
-    if(vm.items){
-      setPieData();
-    }
-  });
-
 
   $scope.options = {
     chart: {
@@ -57,10 +48,7 @@ function statsCtrl($scope, dataService, $timeout, logService, $state, $rootScope
   ];
 
   function init(){
-    vm.items = dataService.getAllItems();
-    vm.items.$loaded(function (){
-      setPieData();
-    });
+
   }
 
   function setPieData(){

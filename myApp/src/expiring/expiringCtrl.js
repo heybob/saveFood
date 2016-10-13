@@ -9,18 +9,16 @@ function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $sta
   $scope.useItem = useItem;
   $scope.notExpired = notExpired;
 
-  dataService.initItems().then(function(data){
-    $scope.items = data;
-  });
 
-  dataService.initContainers().then(function(data){
-    $scope.containers = data;
-  });
 
   $scope.$on("$ionicView.beforeEnter", function() {
-    if(!$rootScope.user){
-      $state.go('login');
-    }
+    dataService.initItems().then(function(data){
+      $scope.items = data;
+    });
+
+    dataService.initContainers().then(function(data){
+      $scope.containers = data;
+    });
   });
 
   function useItem(collection, item){

@@ -61,11 +61,13 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         }
       },
       resolve: {
-        // controller will not be loaded until $waitForSignIn resolves
-        // Auth refers to our $firebaseAuth wrapper in the factory below
-        "currentAuth": ["Auth", function (Auth) {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
           // $waitForSignIn returns a promise so the resolve waits for it to complete
-          return Auth.$waitForSignIn();
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
         }]
       }
     })
@@ -76,6 +78,16 @@ app.config(function ($stateProvider, $urlRouterProvider) {
           templateUrl: 'templates/containers/containers.tpl.html',
           controller: 'savingFood.containerCtrl'
         }
+      },
+      resolve: {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
+        }]
       }
     })
     .state('tabs.stats', {
@@ -85,6 +97,16 @@ app.config(function ($stateProvider, $urlRouterProvider) {
           templateUrl: 'templates/stats/stats.tpl.html',
           controller: 'savingFood.statsCtrl'
         }
+      },
+      resolve: {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
+        }]
       }
     })
     .state('tabs.settings', {
@@ -94,6 +116,16 @@ app.config(function ($stateProvider, $urlRouterProvider) {
           templateUrl: 'templates/settings/settings.tpl.html',
           controller: 'savingFood.settingsCtrl'
         }
+      },
+      resolve: {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
+        }]
       }
     }).state('tabs.conDetails', {
       url: '/conDetails',
@@ -105,6 +137,16 @@ app.config(function ($stateProvider, $urlRouterProvider) {
           templateUrl: 'templates/containers/detailList.tpl.html',
           controller: 'savingFood.detailListCtrl'
         }
+      },
+      resolve: {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
+        }]
       }
     }).state('register', {
       url: '/register',
@@ -126,9 +168,9 @@ app.factory("Auth", ["$firebaseAuth",
 ]);
 
 angular.module('savingFood').controller('savingFood.addItemCtrl', addItemCtrl);
-addItemCtrl.$inject = ['$scope', '$ionicModal', '$firebaseArray', 'dateFormatterService', '$rootScope', 'dataService'];
+addItemCtrl.$inject = ['$scope', '$ionicModal', 'dateFormatterService', '$rootScope', 'dataService', 'Auth'];
 
-function addItemCtrl($scope, $ionicModal, $firebaseArray, dateFormatterService, $rootScope, dataService){
+function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, dataService, Auth){
 
   $scope.openAddItemModal = openAddItemModal;
   $scope.closeAddItemModal = closeAddItemModal;
@@ -168,6 +210,7 @@ function addItemCtrl($scope, $ionicModal, $firebaseArray, dateFormatterService, 
   }
 
   function addItem(){
+    var uid = Auth.$getAuth().uid;
     var containerId = $scope.form.container.$id;
     var item = {
       name: $scope.form.name,
@@ -176,7 +219,7 @@ function addItemCtrl($scope, $ionicModal, $firebaseArray, dateFormatterService, 
       containerId: containerId,
       addedDate: firebase.database.ServerValue.TIMESTAMP,
       expDate: new Date(Date.now() + $scope.form.expires * dateFormatterService.ONE_DAY_MILLI).getTime(),
-      owner: $rootScope.user.uid
+      owner: uid
     };
     firebase.database().ref('items').push(item);
     $scope.$broadcast('itemAdded');
@@ -196,13 +239,9 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
   $scope.toggleEditMode = toggleEditMode;
 
   $scope.$on("$ionicView.beforeEnter", function() {
-    if(!$rootScope.user){
-      $state.go('login');
-    }
-  });
-
-  dataService.initContainers().then(function(data){
-    $scope.containers = data;
+    dataService.initContainers().then(function(data){
+      $scope.containers = data;
+    });
   });
 
   //variables
@@ -320,36 +359,25 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
 }
 
 angular.module('savingFood').controller('savingFood.detailListCtrl', detailListCtrl);
-detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray', 'dataService', 'logService'];
-function detailListCtrl($scope, $state, $firebaseArray, dataService, logService){
+detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray', 'dataService', 'logService', 'dateFormatterService'];
+function detailListCtrl($scope, $state, $firebaseArray, dataService, logService, dateFormatterService){
 
   var vm = this;
 
   // Public
-  $scope.isExpired = isExpired;
-  $scope.useItem = useItem;
+  $scope.isExpired = dateFormatterService.isExpired;
+  $scope.useItem = dataService.useItem;
 
-  $scope.container = $state.params.container;
-  if($scope.container){
-    dataService.initItems().then(function(data){
-      $scope.itemsDetail = data;
-    });
-  }
-
-  function useItem(collection, item){
-    if(item.servings > 1){
-      logService.add(logService.createLogEntryFromItem(item));
-      item.servings -= 1;
-      collection.$save(item);
+  $scope.$on("$ionicView.beforeEnter", function() {
+    $scope.container = $state.params.container;
+    if($scope.container){
+      dataService.initItems().then(function(data){
+        $scope.itemsDetail = data;
+      });
     } else {
-      logService.add(logService.createLogEntryFromItem(item));
-      collection.$remove(item);
+      $state.go('tabs.containers');
     }
-  }
-
-  function isExpired(item){
-    return dataService.isExpired(item);
-  }
+  });
 }
 
 angular.module('savingFood').controller('savingFood.expiringCtrl', expiringCtrl);
@@ -363,18 +391,16 @@ function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $sta
   $scope.useItem = useItem;
   $scope.notExpired = notExpired;
 
-  dataService.initItems().then(function(data){
-    $scope.items = data;
-  });
 
-  dataService.initContainers().then(function(data){
-    $scope.containers = data;
-  });
 
   $scope.$on("$ionicView.beforeEnter", function() {
-    if(!$rootScope.user){
-      $state.go('login');
-    }
+    dataService.initItems().then(function(data){
+      $scope.items = data;
+    });
+
+    dataService.initContainers().then(function(data){
+      $scope.containers = data;
+    });
   });
 
   function useItem(collection, item){
@@ -409,7 +435,6 @@ function loginCtrl($rootScope, $scope, $state) {
     $rootScope.user = user;
       if (user) {
         $state.go('tabs.expiring');
-      } else {
       }
   });
   $scope.$on("$ionicView.beforeEnter", function() {
@@ -494,17 +519,8 @@ function statsCtrl($scope, dataService, $timeout, logService, $state, $rootScope
   vm.items = null;
 
   $scope.$on("$ionicView.beforeEnter", function() {
-    if(!$rootScope.user){
-      $state.go('login');
-    }
+    setPieData();
   });
-
-  $scope.$on("$ionicView.beforeEnter", function() {
-    if(vm.items){
-      setPieData();
-    }
-  });
-
 
   $scope.options = {
     chart: {
@@ -543,10 +559,7 @@ function statsCtrl($scope, dataService, $timeout, logService, $state, $rootScope
   ];
 
   function init(){
-    vm.items = dataService.getAllItems();
-    vm.items.$loaded(function (){
-      setPieData();
-    });
+
   }
 
   function setPieData(){
@@ -567,9 +580,9 @@ function statsCtrl($scope, dataService, $timeout, logService, $state, $rootScope
 }
 
 angular.module('savingFood').factory('dataService', dataService);
-dataService.$inject = ['$q','$rootScope', '$firebaseArray', 'dateFormatterService', 'Auth'];
+dataService.$inject = ['$q','$rootScope', '$firebaseArray', 'dateFormatterService', 'Auth', 'logService'];
 
-function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth){
+function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth, logService){
 
   var items, itemsRef, containersRef, containers, defaultContainer;
   var userId;
@@ -638,8 +651,15 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth)
     return numExpiredItems;
   }
 
-  function isExpired(item){
-    return item.expDate < today;
+  function useItem(collection, item){
+    if(item.servings > 1){
+      logService.add(logService.createLogEntryFromItem(item));
+      item.servings -= 1;
+      collection.$save(item);
+    } else {
+      logService.add(logService.createLogEntryFromItem(item));
+      collection.$remove(item);
+    }
   }
 
   return {
@@ -647,7 +667,7 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth)
     initContainers: initContainers,
     getAllItems: getAllItems,
     getNumExpiredItems: getNumExpiredItems,
-    isExpired: isExpired
+    useItem: useItem
   };
 }
 
@@ -717,20 +737,27 @@ function dateFormatterService(){
   return {
     ONE_DAY_MILLI: ONE_DAY_MILLI,
     getReadableDate: getReadableDate,
-    getToday: getToday
+    getToday: getToday,
+    isExpired: isExpired
   };
 }
 
 angular.module('savingFood').factory('logService', logService);
 
-logService.$inject = ['$rootScope', '$firebaseArray', 'Auth', 'dataService' ];
+logService.$inject = ['$rootScope', '$firebaseArray', 'Auth', 'dateFormatterService', '$state' ];
 
-function logService($rootScope, $firebaseArray, Auth, dataService){
+function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $state){
 
-  var usageLog, log ;
-  var userId = Auth.$getAuth().uid;
-  usageLog = firebase.database().ref('log').orderByChild("creator").equalTo(userId);
-  log = $firebaseArray(usageLog);
+  var usageLog, log, userId ;
+
+  Auth.$waitForSignIn().then(function (data){
+    if(!data){
+      $state.go('login');
+    }
+    userId = userId ? userId : Auth.$getAuth().uid;
+    usageLog = firebase.database().ref('log').orderByChild("creator").equalTo(userId);
+    log = $firebaseArray(usageLog);
+  });
 
 
   var service = {
@@ -740,6 +767,7 @@ function logService($rootScope, $firebaseArray, Auth, dataService){
   };
 
   function addLogEntry(params){
+    //Make sure Log exists!
     log.$add(params);
   }
 
@@ -750,8 +778,8 @@ function logService($rootScope, $firebaseArray, Auth, dataService){
       expDate: item.expDate,
       containerId: item.containerId,
       servingsUsed: 1,
-      creator: $rootScope.user.uid,
-      isExpired: dataService.isExpired(item)
+      creator: userId,
+      isExpired: dateFormatterService.isExpired(item)
     };
     return logEntry;
   }

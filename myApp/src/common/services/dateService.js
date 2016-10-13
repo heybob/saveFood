@@ -64,6 +64,7 @@ function dateFormatterService(){
   return {
     ONE_DAY_MILLI: ONE_DAY_MILLI,
     getReadableDate: getReadableDate,
-    getToday: getToday
+    getToday: getToday,
+    isExpired: isExpired
   };
 }

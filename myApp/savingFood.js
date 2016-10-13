@@ -61,11 +61,13 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         }
       },
       resolve: {
-        // controller will not be loaded until $waitForSignIn resolves
-        // Auth refers to our $firebaseAuth wrapper in the factory below
-        "currentAuth": ["Auth", function (Auth) {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
           // $waitForSignIn returns a promise so the resolve waits for it to complete
-          return Auth.$waitForSignIn();
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
         }]
       }
     })
@@ -76,6 +78,16 @@ app.config(function ($stateProvider, $urlRouterProvider) {
           templateUrl: 'templates/containers/containers.tpl.html',
           controller: 'savingFood.containerCtrl'
         }
+      },
+      resolve: {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
+        }]
       }
     })
     .state('tabs.stats', {
@@ -85,6 +97,16 @@ app.config(function ($stateProvider, $urlRouterProvider) {
           templateUrl: 'templates/stats/stats.tpl.html',
           controller: 'savingFood.statsCtrl'
         }
+      },
+      resolve: {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
+        }]
       }
     })
     .state('tabs.settings', {
@@ -94,6 +116,16 @@ app.config(function ($stateProvider, $urlRouterProvider) {
           templateUrl: 'templates/settings/settings.tpl.html',
           controller: 'savingFood.settingsCtrl'
         }
+      },
+      resolve: {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
+        }]
       }
     }).state('tabs.conDetails', {
       url: '/conDetails',
@@ -105,6 +137,16 @@ app.config(function ($stateProvider, $urlRouterProvider) {
           templateUrl: 'templates/containers/detailList.tpl.html',
           controller: 'savingFood.detailListCtrl'
         }
+      },
+      resolve: {
+        "currentAuth": ["Auth","$state", function (Auth, $state) {
+          // $waitForSignIn returns a promise so the resolve waits for it to complete
+          return Auth.$waitForSignIn().then(function(data){
+            if(!data){
+              $state.go('login');
+            }
+          });
+        }]
       }
     }).state('register', {
       url: '/register',

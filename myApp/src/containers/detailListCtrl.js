@@ -1,32 +1,21 @@
 angular.module('savingFood').controller('savingFood.detailListCtrl', detailListCtrl);
-detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray', 'dataService', 'logService'];
-function detailListCtrl($scope, $state, $firebaseArray, dataService, logService){
+detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray', 'dataService', 'logService', 'dateFormatterService'];
+function detailListCtrl($scope, $state, $firebaseArray, dataService, logService, dateFormatterService){
 
   var vm = this;
 
   // Public
-  $scope.isExpired = isExpired;
-  $scope.useItem = useItem;
+  $scope.isExpired = dateFormatterService.isExpired;
+  $scope.useItem = dataService.useItem;
 
-  $scope.container = $state.params.container;
-  if($scope.container){
-    dataService.initItems().then(function(data){
-      $scope.itemsDetail = data;
-    });
-  }
-
-  function useItem(collection, item){
-    if(item.servings > 1){
-      logService.add(logService.createLogEntryFromItem(item));
-      item.servings -= 1;
-      collection.$save(item);
+  $scope.$on("$ionicView.beforeEnter", function() {
+    $scope.container = $state.params.container;
+    if($scope.container){
+      dataService.initItems().then(function(data){
+        $scope.itemsDetail = data;
+      });
     } else {
-      logService.add(logService.createLogEntryFromItem(item));
-      collection.$remove(item);
+      $state.go('tabs.containers');
     }
-  }
-
-  function isExpired(item){
-    return dataService.isExpired(item);
-  }
+  });
 }

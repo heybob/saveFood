@@ -1,7 +1,7 @@
 angular.module('savingFood').factory('dataService', dataService);
-dataService.$inject = ['$q','$rootScope', '$firebaseArray', 'dateFormatterService', 'Auth'];
+dataService.$inject = ['$q','$rootScope', '$firebaseArray', 'dateFormatterService', 'Auth', 'logService'];
 
-function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth){
+function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth, logService){
 
   var items, itemsRef, containersRef, containers, defaultContainer;
   var userId;
@@ -70,8 +70,15 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth)
     return numExpiredItems;
   }
 
-  function isExpired(item){
-    return item.expDate < today;
+  function useItem(collection, item){
+    if(item.servings > 1){
+      logService.add(logService.createLogEntryFromItem(item));
+      item.servings -= 1;
+      collection.$save(item);
+    } else {
+      logService.add(logService.createLogEntryFromItem(item));
+      collection.$remove(item);
+    }
   }
 
   return {
@@ -79,6 +86,6 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth)
     initContainers: initContainers,
     getAllItems: getAllItems,
     getNumExpiredItems: getNumExpiredItems,
-    isExpired: isExpired
+    useItem: useItem
   };
 }

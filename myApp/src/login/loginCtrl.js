@@ -9,7 +9,6 @@ function loginCtrl($rootScope, $scope, $state) {
     $rootScope.user = user;
       if (user) {
         $state.go('tabs.expiring');
-      } else {
       }
   });
   $scope.$on("$ionicView.beforeEnter", function() {

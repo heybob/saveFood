@@ -1,7 +1,7 @@
 angular.module('savingFood').controller('savingFood.addItemCtrl', addItemCtrl);
-addItemCtrl.$inject = ['$scope', '$ionicModal', '$firebaseArray', 'dateFormatterService', '$rootScope', 'dataService'];
+addItemCtrl.$inject = ['$scope', '$ionicModal', 'dateFormatterService', '$rootScope', 'dataService', 'Auth'];
 
-function addItemCtrl($scope, $ionicModal, $firebaseArray, dateFormatterService, $rootScope, dataService){
+function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, dataService, Auth){
 
   $scope.openAddItemModal = openAddItemModal;
   $scope.closeAddItemModal = closeAddItemModal;
@@ -41,6 +41,7 @@ function addItemCtrl($scope, $ionicModal, $firebaseArray, dateFormatterService, 
   }
 
   function addItem(){
+    var uid = Auth.$getAuth().uid;
     var containerId = $scope.form.container.$id;
     var item = {
       name: $scope.form.name,
@@ -49,7 +50,7 @@ function addItemCtrl($scope, $ionicModal, $firebaseArray, dateFormatterService, 
       containerId: containerId,
       addedDate: firebase.database.ServerValue.TIMESTAMP,
       expDate: new Date(Date.now() + $scope.form.expires * dateFormatterService.ONE_DAY_MILLI).getTime(),
-      owner: $rootScope.user.uid
+      owner: uid
     };
     firebase.database().ref('items').push(item);
     $scope.$broadcast('itemAdded');
