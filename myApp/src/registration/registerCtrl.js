@@ -1,8 +1,8 @@
 angular.module('savingFood').controller('savingFood.registerCtrl', registerCtrl);
 
-registerCtrl.$inject = ['$scope', 'Auth', '$state'];
+registerCtrl.$inject = ['$scope', 'Auth', '$state', 'dataService'];
 
-function registerCtrl($scope, Auth, $state) {
+function registerCtrl($scope, Auth, $state, dataService) {
   //Api
   $scope.register = createUser;
 
@@ -16,10 +16,13 @@ function registerCtrl($scope, Auth, $state) {
 
       return Auth.$signInWithEmailAndPassword($scope.regForm.email, $scope.regForm.password).then(function (authData) {
         // Do first time setup
+        dataService.createInitialContainers();
         $state.go('expiring');
       });
     }).catch(function (error) {
-      $scope.error = error;
+      $scope.$evalAsync(function(){
+        $scope.error = error;
+      });
     });
   }
 }

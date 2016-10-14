@@ -70,22 +70,69 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     return numExpiredItems;
   }
 
-  function useItem(collection, item){
+  function useItem(item){
     if(item.servings > 1){
       logService.add(logService.createLogEntryFromItem(item));
       item.servings -= 1;
-      collection.$save(item);
+      userItems.$save(item);
     } else {
       logService.add(logService.createLogEntryFromItem(item));
-      collection.$remove(item);
+      userItems.$remove(item);
     }
   }
+
+  function addContainer(container){
+    containers.$add(container);
+  }
+
+  function updateContainer(container){
+    containers.$save(container);
+  }
+
+  function removeContainer(container){
+    //TODO: May need to remove all items as well or transfer them.
+    containers.$remove(container);
+  }
+
+  function trashItems(item){
+    logService.add(logService.createLogEntryFromItem(item, true));
+    userItems.$remove(item);
+  }
+
+
+  function createIntialContainers(){
+
+    var containers = [];
+    var container1 = {
+      name: 'My Fridge',
+      type: 'Fridge',
+      owner: Auth.$getAuth().uid
+    };
+    container2 = {
+      name: 'My Freezer',
+      type: 'Freezer',
+      owner: Auth.$getAuth().uid
+    };
+
+    containers.push(container1);
+    containers.push(container2);
+
+    containers.forEach(function(container){
+      addContainer(container);
+    });
+  }
+
 
   return {
     initItems: initItems,
     initContainers: initContainers,
     getAllItems: getAllItems,
     getNumExpiredItems: getNumExpiredItems,
-    useItem: useItem
+    useItem: useItem,
+    addContainer: addContainer,
+    updateContainer: updateContainer,
+    removeContainer: removeContainer,
+    createInitialContainers: createIntialContainers,
+    trashItems: trashItems
   };
 }

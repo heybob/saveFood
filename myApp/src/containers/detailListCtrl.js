@@ -7,6 +7,7 @@ function detailListCtrl($scope, $state, $firebaseArray, dataService, logService,
   // Public
   $scope.isExpired = dateFormatterService.isExpired;
   $scope.useItem = dataService.useItem;
+  $scope.trashItems = dataService.trashItems;
 
   $scope.$on("$ionicView.beforeEnter", function() {
     $scope.container = $state.params.container;

@@ -6,7 +6,7 @@ function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $sta
 
   //Api
   $scope.getReadableDate = getReadableDate;
-  $scope.useItem = useItem;
+  $scope.useItem = dataService.useItem;
   $scope.notExpired = notExpired;
 
 
@@ -21,16 +21,6 @@ function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $sta
     });
   });
 
-  function useItem(collection, item){
-    if(item.servings > 1){
-      logService.add(logService.createLogEntryFromItem(item));
-      item.servings -= 1;
-      collection.$save(item);
-    } else {
-      logService.add(logService.createLogEntryFromItem(item));
-      collection.$remove(item);
-    }
-  }
   function getReadableDate(date) {
     return dateFormatterService.getReadableDate(date);
   }

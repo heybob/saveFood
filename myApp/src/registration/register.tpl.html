@@ -12,9 +12,7 @@
         <input type="password" ng-model="regForm.confirmPassword" placeholder="Confirm Password">
       </label>
     </div>
-    <div class="form-error" ng-if="error">
-      Error: {{error.message}}
-    </div>
+    <form-error error="error"></form-error>
     <div>
       <button class="button button-block button-balanced" ng-click="register() ">
         Register

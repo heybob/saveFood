@@ -8,7 +8,7 @@
           on-swipe-right="useItem(items, item)">
         <span>{{item.servings}} &nbsp; &nbsp;{{item.name}}</span>
         <span  style="float: right; color: #ccc; margin-right: 20px">{{getReadableDate(item.expDate)}}</span>
-        <button class="button button-outline button-balanced" ng-click="useItem(items, item)">Eat</button>
+        <button class="button button-outline button-balanced" ng-click="useItem(item)">Eat</button>
       </li>
     </ul>
   </ion-content>

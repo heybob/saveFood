@@ -1,16 +1,16 @@
 angular.module('savingFood').controller('savingFood.containerCtrl', containerCtrl);
-containerCtrl.$inject = ['$scope','$ionicModal', '$ionicActionSheet', '$rootScope', '$state', 'dataService'];
-function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $state, dataService) {
+containerCtrl.$inject = ['$scope', '$ionicModal', '$ionicActionSheet', '$rootScope', '$state', 'dataService', 'Auth'];
+function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $state, dataService, Auth) {
 
   //Public Methods
   $scope.addContainer = addContainer;
   $scope.removeContainer = removeContainer;
-  $scope.openAddContainerModal =  openAddContainerModal;
+  $scope.openAddContainerModal = openAddContainerModal;
   $scope.closeAddContainerModal = closeAddContainerModal;
   $scope.toggleEditMode = toggleEditMode;
 
-  $scope.$on("$ionicView.beforeEnter", function() {
-    dataService.initContainers().then(function(data){
+  $scope.$on("$ionicView.beforeEnter", function () {
+    dataService.initContainers().then(function (data) {
       $scope.containers = data;
     });
   });
@@ -31,31 +31,36 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
 
   function removeContainer(container) {
     var con = container;
-    var deleteFn = function(){deleteContainer.call(this,container); hideSheet()};
+    var deleteFn = function () {
+      deleteContainer.call(this, container);
+      hideSheet();
+    };
     showDeleteConfirmation(deleteFn, container);
   }
-  function deleteContainer(container){
-    $scope.containers.$remove(container);
+
+  function deleteContainer(container) {
+    dataService.removeContainer(container);
   }
+
   function addContainer() {
     var container = {
       name: $scope.form.name,
       type: $scope.form.type.value,
-      owner: $rootScope.user.uid
+      owner: Auth.$getAuth().uid
     };
-    firebase.database().ref('containers').push(container);
+    dataService.addContainer(container);
     $scope.closeAddContainerModal();
   }
 
-  function updateContainer(container){
+  function updateContainer(container) {
     container.name = $scope.form.name;
     container.type = $scope.form.type.value;
-    $scope.containers.$save(container);
+    dataService.updateContainer(container);
     $scope.closeAddContainerModal();
 
   }
 
-  function clearForm(){
+  function clearForm() {
     $scope.form.name = undefined;
     $scope.form.type = $scope.containerOptions[0];
   }
@@ -64,11 +69,11 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
     scope: $scope,
     animation: 'slide-in-up',
     focusFirstInput: true
-  }).then(function(modal) {
+  }).then(function (modal) {
     $scope.containerModal = modal;
   });
   function openAddContainerModal(container) {
-    if(!container) { // implied Add
+    if (!container) { // implied Add
       $scope.modalProps = {
         buttonName: 'Add',
         executeFn: addContainer
@@ -80,7 +85,7 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
         container: container
       };
       $scope.form.name = container.name;
-      if(container.type === 'Fridge'){
+      if (container.type === 'Fridge') {
         $scope.form.type = $scope.containerOptions[0];
       } else {
         $scope.form.type = $scope.containerOptions[1];
@@ -94,7 +99,7 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
     $scope.containerModal.hide();
   }
 
-  function toggleEditMode(){
+  function toggleEditMode() {
     $scope.editMode = !$scope.editMode;
   }
 
@@ -104,9 +109,9 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
     // Show the action sheet
     hideSheet = $ionicActionSheet.show({
       destructiveText: 'Delete',
-      titleText: 'Delete ' + container.name +' and it\'s contents?',
+      titleText: 'Delete ' + container.name + ' and it\'s contents?',
       cancelText: 'Cancel',
-      cancel: function() {
+      cancel: function () {
         hideSheet();
       },
       destructiveButtonClicked: action
@@ -114,17 +119,17 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
   }
 
   // Cleanup the modal when we're done with it!
-  $scope.$on('$destroy', function() {
+  $scope.$on('$destroy', function () {
     clearForm();
     $scope.containerModal.remove();
 
   });
   // Execute action on hide modal
-  $scope.$on('modal.hidden', function() {
+  $scope.$on('modal.hidden', function () {
     // Execute action
   });
   // Execute action on remove modal
-  $scope.$on('modal.removed', function() {
+  $scope.$on('modal.removed', function () {
     // Execute action
   });
 }

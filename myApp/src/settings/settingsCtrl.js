@@ -1,14 +1,8 @@
 angular.module('savingFood').controller('savingFood.settingsCtrl', settingsCtrl);
 
-settingsCtrl.$inject = ['$scope', '$state', '$location', '$rootScope'];
+settingsCtrl.$inject = ['$scope', '$state', '$location', '$rootScope', 'Auth'];
 
-function settingsCtrl($scope, $state, $location, $rootScope){
-
-  $scope.$on("$ionicView.beforeEnter", function() {
-    if(!$rootScope.user){
-      $state.go('login');
-    }
-  });
+function settingsCtrl($scope, $state, $location, $rootScope, Auth){
 
   $scope.signOut = function(){
     //Need to destroy references.
