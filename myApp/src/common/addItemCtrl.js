@@ -1,11 +1,12 @@
 angular.module('savingFood').controller('savingFood.addItemCtrl', addItemCtrl);
-addItemCtrl.$inject = ['$scope', '$ionicModal', 'dateFormatterService', '$rootScope', 'dataService', 'Auth'];
+addItemCtrl.$inject = ['$scope', '$ionicModal', 'dateFormatterService', '$rootScope', 'dataService', 'Auth', '$state'];
 
-function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, dataService, Auth){
+function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, dataService, Auth, $state){
 
   $scope.openAddItemModal = openAddItemModal;
   $scope.closeAddItemModal = closeAddItemModal;
   $scope.addItem = addItem;
+  $scope.isAddVisible = isAddVisible;
 
   $scope.addItemModalProps = {
     buttonName: 'Add',
@@ -22,7 +23,12 @@ function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, data
   }).then(function(modal) {
     $scope.itemModal = modal;
   });
-
+  function isAddVisible(){
+    if($state.current.name === 'login' || $state.current.name === 'register' || $state.current.name === '') {
+      return false;
+    }
+    return true;
+  }
   function openAddItemModal(id, item) {
     dataService.initContainers().then(function(data){
       $scope.containers = data;

@@ -8,8 +8,8 @@
         <li  class="item item-button-right" ng-repeat="item in itemsDetail | orderBy: 'expDate' | filter : container.$id">
           <span>{{item.servings}} &nbsp; &nbsp;{{item.name}}</span>
           <span  style="float: right; color: #ccc; margin-right: 20px">{{getReadableDate(item.expDate)}}</span>
-          <button ng-if="!isExpired(item)" class="button button-outline button-balanced" ng-click="useItem(itemsDetail, item)">Eat</button>
-          <button ng-if="isExpired(item)" class="button button-outline button-balanced" ng-click="useItem(itemsDetail, item)">Trash</button>
+          <button ng-if="!isExpired(item.expDate)" class="button button-outline button-balanced" ng-click="useItem(item)">Eat</button>
+          <button ng-if="isExpired(item.expDate)" class="button button-outline button-balanced" ng-click="trashItems(item)">Trash</button>
         </li>
       </ul>
     </div>
