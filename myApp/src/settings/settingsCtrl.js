@@ -1,19 +1,13 @@
 angular.module('savingFood').controller('savingFood.settingsCtrl', settingsCtrl);
 
-settingsCtrl.$inject = ['$scope', '$state', '$location', '$rootScope', 'Auth'];
+settingsCtrl.$inject = ['$scope', '$state', '$location', '$rootScope', 'Auth', 'dataService', 'logService'];
 
-function settingsCtrl($scope, $state, $location, $rootScope, Auth){
+function settingsCtrl($scope, $state, $location, $rootScope, Auth, dataService, logService){
 
-  $scope.signOut = function(){
-    //Need to destroy references.
-    firebase.auth().signOut().then(function() {
-      var port = $location.port() === 80 ? '' : ':' + $location.port();
-      var url = $location.protocol() + '://' + $location.host() + port + '/';
-      window.location.href = url;
-      $rootScope.$broadcast('userLogged');
-    }, function(error) {
-      // An error happened.
-    });
-  };
-
-}
+  $scope.signOut = function() {
+    Auth.$signOut();
+    dataService.destroyReferences();
+    logService.destroyReferences();
+    $state.go('login');
+  }
+};

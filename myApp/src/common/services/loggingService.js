@@ -9,7 +9,7 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
   // Gets the users logging data.
   function initLogging() {
     var deferred = $q.defer();
-    userId = userId ? userId : Auth.$getAuth().uid;
+    userId = Auth.$getAuth().uid;
     if(!usageLog || !log){
       usageLog = firebase.database().ref('log').orderByChild("creator").equalTo(userId);
       log = $firebaseArray(usageLog);
@@ -29,7 +29,8 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
   var service = {
     add: addLogEntry,
     createLogEntryFromItem: createLogEntryFromItem,
-    getAllTimeStats: getAllTimeStats
+    getAllTimeStats: getAllTimeStats,
+    destroyReferences: destroyReferences
   };
 
   function addLogEntry(params){
@@ -78,6 +79,11 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
     });
 
     return deferred.promise;
+  }
+
+  function destroyReferences(){
+    usageLog = null;
+    log = null;
   }
 
   return service;

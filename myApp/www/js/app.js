@@ -370,8 +370,8 @@ function containerCtrl($scope, $ionicModal, $ionicActionSheet, $rootScope, $stat
 }
 
 angular.module('savingFood').controller('savingFood.detailListCtrl', detailListCtrl);
-detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray', 'dataService', 'logService', 'dateFormatterService'];
-function detailListCtrl($scope, $state, $firebaseArray, dataService, logService, dateFormatterService){
+detailListCtrl.$inject = ['$scope', '$state', 'dataService', 'dateFormatterService'];
+function detailListCtrl($scope, $state, dataService, dateFormatterService){
 
   var vm = this;
 
@@ -486,23 +486,17 @@ function registerCtrl($scope, Auth, $state, dataService) {
 
 angular.module('savingFood').controller('savingFood.settingsCtrl', settingsCtrl);
 
-settingsCtrl.$inject = ['$scope', '$state', '$location', '$rootScope', 'Auth'];
+settingsCtrl.$inject = ['$scope', '$state', '$location', '$rootScope', 'Auth', 'dataService', 'logService'];
 
-function settingsCtrl($scope, $state, $location, $rootScope, Auth){
+function settingsCtrl($scope, $state, $location, $rootScope, Auth, dataService, logService){
 
-  $scope.signOut = function(){
-    //Need to destroy references.
-    firebase.auth().signOut().then(function() {
-      var port = $location.port() === 80 ? '' : ':' + $location.port();
-      var url = $location.protocol() + '://' + $location.host() + port + '/';
-      window.location.href = url;
-      $rootScope.$broadcast('userLogged');
-    }, function(error) {
-      // An error happened.
-    });
-  };
-
-}
+  $scope.signOut = function() {
+    Auth.$signOut();
+    dataService.destroyReferences();
+    logService.destroyReferences();
+    $state.go('login');
+  }
+};
 
 angular.module('savingFood').controller('savingFood.statsCtrl', statsCtrl);
 
@@ -604,7 +598,7 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
   var containers, containersRef;
 
   function initItems(){
-    userId = userId ? userId : Auth.$getAuth().uid;
+    userId = Auth.$getAuth().uid;
     var deferred = $q.defer();
     if(userItems){
       deferred.resolve(userItems);
@@ -619,7 +613,7 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
   }
 
   function initContainers(){
-    userId = userId ? userId : Auth.$getAuth().uid;
+    userId = Auth.$getAuth().uid;
     var deferred = $q.defer();
     if(containers){
       deferred.resolve(containers);
@@ -706,6 +700,15 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     });
   }
 
+  function destroyReferences(){
+    userItems.$destroy();
+    containers.$destroy();
+    itemsRef = null;
+    containersRef = null;
+    userItems = null;
+    containers = null;
+  }
+
 
   return {
     initItems: initItems,
@@ -717,6 +720,7 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     updateContainer: updateContainer,
     removeContainer: removeContainer,
     createInitialContainers: createIntialContainers,
+    destroyReferences: destroyReferences,
     trashItems: trashItems
   };
 }
@@ -803,7 +807,7 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
   // Gets the users logging data.
   function initLogging() {
     var deferred = $q.defer();
-    userId = userId ? userId : Auth.$getAuth().uid;
+    userId = Auth.$getAuth().uid;
     if(!usageLog || !log){
       usageLog = firebase.database().ref('log').orderByChild("creator").equalTo(userId);
       log = $firebaseArray(usageLog);
@@ -823,7 +827,8 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
   var service = {
     add: addLogEntry,
     createLogEntryFromItem: createLogEntryFromItem,
-    getAllTimeStats: getAllTimeStats
+    getAllTimeStats: getAllTimeStats,
+    destroyReferences: destroyReferences
   };
 
   function addLogEntry(params){
@@ -872,6 +877,11 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
     });
 
     return deferred.promise;
+  }
+
+  function destroyReferences(){
+    usageLog = null;
+    log = null;
   }
 
   return service;

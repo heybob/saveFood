@@ -1,6 +1,6 @@
 angular.module('savingFood').controller('savingFood.detailListCtrl', detailListCtrl);
-detailListCtrl.$inject = ['$scope', '$state', '$firebaseArray', 'dataService', 'logService', 'dateFormatterService'];
-function detailListCtrl($scope, $state, $firebaseArray, dataService, logService, dateFormatterService){
+detailListCtrl.$inject = ['$scope', '$state', 'dataService', 'dateFormatterService'];
+function detailListCtrl($scope, $state, dataService, dateFormatterService){
 
   var vm = this;
 

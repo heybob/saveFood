@@ -20,7 +20,7 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
   var containers, containersRef;
 
   function initItems(){
-    userId = userId ? userId : Auth.$getAuth().uid;
+    userId = Auth.$getAuth().uid;
     var deferred = $q.defer();
     if(userItems){
       deferred.resolve(userItems);
@@ -35,7 +35,7 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
   }
 
   function initContainers(){
-    userId = userId ? userId : Auth.$getAuth().uid;
+    userId = Auth.$getAuth().uid;
     var deferred = $q.defer();
     if(containers){
       deferred.resolve(containers);
@@ -122,6 +122,15 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     });
   }
 
+  function destroyReferences(){
+    userItems.$destroy();
+    containers.$destroy();
+    itemsRef = null;
+    containersRef = null;
+    userItems = null;
+    containers = null;
+  }
+
 
   return {
     initItems: initItems,
@@ -133,6 +142,7 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     updateContainer: updateContainer,
     removeContainer: removeContainer,
     createInitialContainers: createIntialContainers,
+    destroyReferences: destroyReferences,
     trashItems: trashItems
   };
 }
