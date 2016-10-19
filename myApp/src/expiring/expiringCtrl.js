@@ -32,7 +32,8 @@ function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $sta
   }
 
   function notExpired(item) {
-    return item.expDate >= dateFormatterService.getToday().getTime();
+    //return item.expDate >= dateFormatterService.getToday().getTime();
+    return true;
   }
 
   function isItemSelected(item){

@@ -9,13 +9,11 @@ function dateFormatterService(){
   function getReadableDate(date){
     if(isToday(date)){
       return 'Today';
-    //} else if(isTomorrow(date)) {
-    //  return 'Tomorrow';
     } else if(withinAWeek(date)) {
       var dayOfWeek = new Date(date).getDay();
       return DAYS_OF_WEEK[dayOfWeek];
     } else if(isExpired(date)){
-      return 'Expired';
+      return 'EXPIRED';
     } else {
       var date = new Date(date);
       var month = MONTHS[date.getMonth()];

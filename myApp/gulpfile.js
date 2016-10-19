@@ -10,6 +10,7 @@ var sh = require('shelljs');
 
 var paths = {
   sass: ['./scss/**/*.scss'],
+  appSass: ['./src/common/scss/*.scss'],
   js: ['savingFood.js', 'src/**/*.js'],
   templates: ['src/**/*.tpl.html'],
   vendor: ['./vendor/**/*.js'],
@@ -57,7 +58,7 @@ gulp.task('vendorCSS', function() {
 
 
 gulp.task('watch', function() {
-  gulp.watch([paths.sass, paths.js, paths.templates, paths.css], ['scripts', 'templates','vendor', 'vendorCSS','sass']);
+  gulp.watch([paths.sass, paths.js, paths.templates, paths.css, paths.appSass], ['scripts', 'templates','vendor', 'vendorCSS','sass']);
 });
 
 gulp.task('install', ['git-check'], function() {

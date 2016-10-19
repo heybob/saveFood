@@ -9814,3 +9814,42 @@ a.button {
   opacity: 0;
   -webkit-transition-duration: 0s;
   transition-duration: 0s; }
+
+/** ITEM **/
+.item--selected {
+  background-color: #f3f3f3 !important; }
+
+.item:active {
+  background-color: #fff; }
+
+.button-bar {
+  width: 100%;
+  background: #bbb;
+  clear: left;
+  display: flex;
+  flex-direction: row-reverse; }
+  .button-bar .btn {
+    display: flex;
+    flex-grow: 1;
+    padding: 5px;
+    cursor: pointer; }
+    .button-bar .btn .btn:hover {
+      background-color: #999; }
+    .button-bar .btn .btn:active {
+      background-color: #777; }
+    .button-bar .btn span {
+      margin: 0 auto; }
+
+/****** Button Bar Animation *********/
+.closed {
+  height: 0px; }
+
+.open {
+  height: 30px; }
+
+.transition-height {
+  -webkit-transition: height 250ms ease;
+  -moz-transition: height 250ms ease;
+  -o-transition: height 250ms ease;
+  -ms-transition: height 250ms ease;
+  transition: height 250ms ease; }
