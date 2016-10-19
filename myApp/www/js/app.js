@@ -216,6 +216,7 @@ function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, data
   }
 
   function addItem(){
+    //TODO: Add Container Name
     var uid = Auth.$getAuth().uid;
     var containerId = $scope.form.container.$id;
     var item = {
@@ -402,6 +403,12 @@ function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $sta
   $scope.getReadableDate = getReadableDate;
   $scope.useItem = dataService.useItem;
   $scope.notExpired = notExpired;
+  $scope.isItemSelected = isItemSelected;
+  $scope.selectItem = selectItem;
+  $scope.removeItem = dataService.removeItem;
+  $scope.trashItems = dataService.trashItems;
+  $scope.extendExp = extendExp;
+  $scope.getContainerName = dataService.getContainerName;
 
 
 
@@ -423,6 +430,28 @@ function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $sta
     return item.expDate >= dateFormatterService.getToday().getTime();
   }
 
+  function isItemSelected(item){
+    if($scope.selected && item.$id === $scope.selected.$id){
+      return true;
+    }
+    return false;
+  }
+  function selectItem(item) {
+    if($scope.selected && item.$id === $scope.selected.$id){
+      clearSelectedItem();
+    } else {
+      $scope.selected = item;
+    }
+  }
+
+  function clearSelectedItem(){
+    $scope.selected = null;
+  }
+
+  function extendExp(item){
+    dataService.extendExp(item);
+    clearSelectedItem();
+  }
 
 }
 
@@ -673,8 +702,23 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
   }
 
   function trashItems(item){
-    logService.add(logService.createLogEntryFromItem(item, true));
+    logService.add(logService.createLogEntryFromItem(item, true, true));
     userItems.$remove(item);
+  }
+
+  function removeItem(item){
+    userItems.$remove(item);
+  }
+
+  function extendExpiration(item, days){
+    var extendAmt;
+    if(days){
+      extendAmt = days * dateFormatterService.ONE_DAY_MILLI;
+    } else {
+      extendAmt = dateFormatterService.ONE_DAY_MILLI;
+    }
+    item.expDate += extendAmt;
+    userItems.$save(item);
   }
 
 
@@ -700,6 +744,18 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     });
   }
 
+  function getContainerName(id){
+    var containerName = '';
+    if(containers){
+      containers.forEach(function(container){
+        if(container.$id === id){
+          containerName = container.name;
+        }
+      });
+    }
+    return containerName;
+  }
+
   function destroyReferences(){
     userItems.$destroy();
     containers.$destroy();
@@ -720,8 +776,11 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     updateContainer: updateContainer,
     removeContainer: removeContainer,
     createInitialContainers: createIntialContainers,
+    getContainerName: getContainerName,
     destroyReferences: destroyReferences,
-    trashItems: trashItems
+    trashItems: trashItems,
+    removeItem: removeItem,
+    extendExp: extendExpiration
   };
 }
 
@@ -736,8 +795,8 @@ function dateFormatterService(){
   function getReadableDate(date){
     if(isToday(date)){
       return 'Today';
-    } else if(isTomorrow(date)) {
-      return 'Tomorrow';
+    //} else if(isTomorrow(date)) {
+    //  return 'Tomorrow';
     } else if(withinAWeek(date)) {
       var dayOfWeek = new Date(date).getDay();
       return DAYS_OF_WEEK[dayOfWeek];
@@ -844,7 +903,7 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
    * @param allServings: flag to remove all servings. If true use item servings or just log 1.
    * @returns {{name: *, addedDate: *, expDate: *, containerId: containerId, servingsUsed: *, creator: *, isExpired: *}}
    */
-  function createLogEntryFromItem(item, allServings){
+  function createLogEntryFromItem(item, allServings, forceExpired){
     var servings = parseInt(allServings ? item.servings : 1);
     var logEntry = {
       name: item.name,
@@ -853,7 +912,7 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
       containerId: item.containerId,
       servingsUsed: servings,
       creator: userId,
-      isExpired: dateFormatterService.isExpired(item.expDate)
+      isExpired: forceExpired ? true : dateFormatterService.isExpired(item.expDate)
     };
     return logEntry;
   }
