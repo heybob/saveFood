@@ -42,9 +42,9 @@ function dateFormatterService(){
   }
 
   function withinAWeek(date){
-    var twoDaysFromToday = getToday().getTime() + 2 * ONE_DAY_MILLI ;
-    var weekFromToday = twoDaysFromToday + 3 * ONE_DAY_MILLI;
-    return twoDaysFromToday < date && date < weekFromToday;
+    var oneDaysFromToday = getToday().getTime() + ONE_DAY_MILLI ;
+    var weekFromToday = oneDaysFromToday + 3 * ONE_DAY_MILLI;
+    return oneDaysFromToday < date && date < weekFromToday;
   }
 
   function getToday(){
