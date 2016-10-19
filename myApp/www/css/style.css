@@ -32,3 +32,40 @@
   text-align: center;
 }
 
+
+
+/** ITEM **/
+
+.item--selected {
+  background-color: #f3f3f3 !important;
+}
+
+.item:active {
+  background-color: #fff;
+}
+
+.item .button-bar {
+  width: 100%;
+  background: #bbb;
+  clear: left;
+  display: flex;
+  flex-direction: row-reverse;
+
+}
+.item .button-bar .btn {
+  display: flex;
+  flex-grow: 1;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.item .button-bar .btn:hover {
+  background-color: #999;
+}
+
+.item .button-bar .btn:active {
+  background-color: #777;
+}
+.item .button-bar .btn span {
+  margin: 0 auto;
+}

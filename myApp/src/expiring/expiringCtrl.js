@@ -8,6 +8,12 @@ function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $sta
   $scope.getReadableDate = getReadableDate;
   $scope.useItem = dataService.useItem;
   $scope.notExpired = notExpired;
+  $scope.isItemSelected = isItemSelected;
+  $scope.selectItem = selectItem;
+  $scope.removeItem = dataService.removeItem;
+  $scope.trashItems = dataService.trashItems;
+  $scope.extendExp = extendExp;
+  $scope.getContainerName = dataService.getContainerName;
 
 
 
@@ -29,5 +35,27 @@ function expiringCtrl($scope, logService, dateFormatterService, $rootScope, $sta
     return item.expDate >= dateFormatterService.getToday().getTime();
   }
 
+  function isItemSelected(item){
+    if($scope.selected && item.$id === $scope.selected.$id){
+      return true;
+    }
+    return false;
+  }
+  function selectItem(item) {
+    if($scope.selected && item.$id === $scope.selected.$id){
+      clearSelectedItem();
+    } else {
+      $scope.selected = item;
+    }
+  }
+
+  function clearSelectedItem(){
+    $scope.selected = null;
+  }
+
+  function extendExp(item){
+    dataService.extendExp(item);
+    clearSelectedItem();
+  }
 
 }

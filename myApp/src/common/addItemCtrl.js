@@ -47,6 +47,7 @@ function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, data
   }
 
   function addItem(){
+    //TODO: Add Container Name
     var uid = Auth.$getAuth().uid;
     var containerId = $scope.form.container.$id;
     var item = {

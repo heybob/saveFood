@@ -46,7 +46,7 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
    * @param allServings: flag to remove all servings. If true use item servings or just log 1.
    * @returns {{name: *, addedDate: *, expDate: *, containerId: containerId, servingsUsed: *, creator: *, isExpired: *}}
    */
-  function createLogEntryFromItem(item, allServings){
+  function createLogEntryFromItem(item, allServings, forceExpired){
     var servings = parseInt(allServings ? item.servings : 1);
     var logEntry = {
       name: item.name,
@@ -55,7 +55,7 @@ function logService($rootScope, $firebaseArray, Auth, dateFormatterService, $sta
       containerId: item.containerId,
       servingsUsed: servings,
       creator: userId,
-      isExpired: dateFormatterService.isExpired(item.expDate)
+      isExpired: forceExpired ? true : dateFormatterService.isExpired(item.expDate)
     };
     return logEntry;
   }

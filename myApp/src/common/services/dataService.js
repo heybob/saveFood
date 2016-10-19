@@ -95,8 +95,23 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
   }
 
   function trashItems(item){
-    logService.add(logService.createLogEntryFromItem(item, true));
+    logService.add(logService.createLogEntryFromItem(item, true, true));
     userItems.$remove(item);
+  }
+
+  function removeItem(item){
+    userItems.$remove(item);
+  }
+
+  function extendExpiration(item, days){
+    var extendAmt;
+    if(days){
+      extendAmt = days * dateFormatterService.ONE_DAY_MILLI;
+    } else {
+      extendAmt = dateFormatterService.ONE_DAY_MILLI;
+    }
+    item.expDate += extendAmt;
+    userItems.$save(item);
   }
 
 
@@ -122,6 +137,18 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     });
   }
 
+  function getContainerName(id){
+    var containerName = '';
+    if(containers){
+      containers.forEach(function(container){
+        if(container.$id === id){
+          containerName = container.name;
+        }
+      });
+    }
+    return containerName;
+  }
+
   function destroyReferences(){
     userItems.$destroy();
     containers.$destroy();
@@ -142,7 +169,10 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     updateContainer: updateContainer,
     removeContainer: removeContainer,
     createInitialContainers: createIntialContainers,
+    getContainerName: getContainerName,
     destroyReferences: destroyReferences,
-    trashItems: trashItems
+    trashItems: trashItems,
+    removeItem: removeItem,
+    extendExp: extendExpiration
   };
 }
