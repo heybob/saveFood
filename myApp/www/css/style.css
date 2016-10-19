@@ -23,6 +23,7 @@
   top: 8px;
   line-height: normal;
 }
+
 .form-error {
   border: 1px solid #ccc;
   border-radius: 2px;
@@ -31,8 +32,6 @@
   background: #f5f5f5;
   text-align: center;
 }
-
-
 
 /** ITEM **/
 
@@ -52,6 +51,7 @@
   flex-direction: row-reverse;
 
 }
+
 .item .button-bar .btn {
   display: flex;
   flex-grow: 1;
@@ -66,6 +66,26 @@
 .item .button-bar .btn:active {
   background-color: #777;
 }
+
 .item .button-bar .btn span {
   margin: 0 auto;
+}
+
+/****** Animation *********/
+
+.closed {
+  height: 0px;
+}
+
+.open {
+  height: 30px;
+}
+
+.transition-height {
+  -webkit-transition: height 250ms ease;
+  -moz-transition: height 250ms ease;
+  -o-transition: height 250ms ease;
+  -ms-transition: height 250ms ease;
+  transition: height 250ms ease;
+
 }

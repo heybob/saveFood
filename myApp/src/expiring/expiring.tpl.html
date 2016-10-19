@@ -23,15 +23,18 @@
               </div>
             </div>
             <div style="width: 30%; display: inline-block; float: left; padding: 10px">
-              <div style="text-align: right">
+              <div style="text-align: right" >
                 <span style="font-size: 12pt; color: #bbb; line-height: 2.3">{{getReadableDate(item.expDate).toUpperCase()}}</span>
               </div>
             </div>
           </div>
 
-        <div ng-if="isItemSelected(item)" ng-click="{{console.log('clicked')}}" class="button-bar">
+        <div ng-show="isItemSelected(item)"
+             ng-click="{{console.log('clicked')}}"
+             ng-class="isItemSelected(item) ? 'open' : 'closed'"
+             class="button-bar transition-height">
 
-          <div class="btn" ng-click="useItem(item)">
+          <div class="btn" ng-click="useItem(item)" >
             <span>USE</span>
           </div>
 

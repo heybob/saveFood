@@ -12,11 +12,11 @@ var paths = {
   sass: ['./scss/**/*.scss'],
   js: ['savingFood.js', 'src/**/*.js'],
   templates: ['src/**/*.tpl.html'],
-  d3: ['vendor/d3/d3.min.js', 'vendor/nvd3/nv.d3.min.js','vendor/angular-nvd3/angular-nvd3.min.js'],
-  css: ['vendor/nvd3/nv.d3.min.css']
+  vendor: ['./vendor/**/*.js'],
+  css: ['vendor/nvd3/nv.d3.min.css', './www/css/style.css']
 };
 
-gulp.task('default', ['scripts', 'templates','d3', 'vendorCSS', 'sass']);
+gulp.task('default', ['scripts', 'templates','vendor', 'vendorCSS', 'sass']);
 
 gulp.task('sass', function(done) {
   gulp.src('./scss/ionic.app.scss')
@@ -43,8 +43,8 @@ gulp.task('templates', function() {
         .pipe(gulp.dest('www/templates/'))
 });
 
-gulp.task('d3', function() {
-    gulp.src(paths.d3)
+gulp.task('vendor', function() {
+    gulp.src(paths.vendor)
         .pipe(copy())
         .pipe(gulp.dest('www/vendor/'))
 });
@@ -57,7 +57,7 @@ gulp.task('vendorCSS', function() {
 
 
 gulp.task('watch', function() {
-  gulp.watch([paths.sass, paths.js, paths.templates], ['scripts', 'templates','d3', 'vendorCSS','sass']);
+  gulp.watch([paths.sass, paths.js, paths.templates, paths.css], ['scripts', 'templates','vendor', 'vendorCSS','sass']);
 });
 
 gulp.task('install', ['git-check'], function() {
