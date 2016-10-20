@@ -5,17 +5,20 @@
   <ion-content class="padding">
     <form>
       <label class="item item-input">
-        <input ng-model="form.name" type="text" placeholder="Item Name">
+        <span class="input-label">Name:</span>
+        <input ng-model="form.name" type="text" placeholder="Enter Name">
       </label>
       <label class="item item-input">
-        <input ng-model="form.servings" type="text" placeholder="Servings">
+        <span class="input-label">Servings:</span>
+        <input ng-model="form.servings" type="text" placeholder="Enter Servings">
       </label>
       <label class="item item-input">
-        <input ng-model="form.expires" type="text" placeholder="Expires in ">
+        <span class="input-label">Expires:</span>
+        <input ng-model="form.expires" type="text" placeholder="Enter Days Until Expiration">
       </label>
       <label class="item item-input item-select">
         <div class="input-label">
-          Storage Location
+          Storage Location:
         </div>
         <select ng-model="form.container" ng-options="option.name for option in containers">
         </select>

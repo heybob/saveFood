@@ -168,14 +168,15 @@ app.factory("Auth", ["$firebaseAuth",
 ]);
 
 angular.module('savingFood').controller('savingFood.addItemCtrl', addItemCtrl);
-addItemCtrl.$inject = ['$scope', '$ionicModal', 'dateFormatterService', '$rootScope', 'dataService', 'Auth', '$state'];
+addItemCtrl.$inject = ['$scope', '$ionicModal', 'dateFormatterService', 'dataService', 'Auth', '$state'];
 
-function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, dataService, Auth, $state){
+function addItemCtrl($scope, $ionicModal, dateFormatterService, dataService, Auth, $state){
 
   $scope.openAddItemModal = openAddItemModal;
   $scope.closeAddItemModal = closeAddItemModal;
   $scope.addItem = addItem;
   $scope.isAddVisible = isAddVisible;
+  $scope.item = undefined;
 
   $scope.addItemModalProps = {
     buttonName: 'Add',
@@ -193,14 +194,20 @@ function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, data
     $scope.itemModal = modal;
   });
   function isAddVisible(){
-    if($state.current.name === 'login' || $state.current.name === 'register' || $state.current.name === '') {
+    if($state.current && ($state.current.name === 'login' || $state.current.name === 'register' || $state.current.name === '')) {
       return false;
     }
     return true;
   }
-  function openAddItemModal(id, item) {
+  function openAddItemModal(item) {
     dataService.initContainers().then(function(data){
       $scope.containers = data;
+      if(item){
+        $scope.form.name = item.name;
+        $scope.form.expires = item.expiresIn;
+        $scope.form.servings = item.servings;
+      }
+      $scope.item = item;
       $scope.form.container = $scope.containers[0];
       $scope.itemModal.show();
     });
@@ -212,14 +219,24 @@ function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, data
   }
 
   function resetAddItemForm(){
+    $scope.item = undefined;
     $scope.form = {};
   }
 
   function addItem(){
-    //TODO: Add Container Name
+    if($scope.item){
+      dataService.updateItem(updateItemProperties($scope.item));
+    } else {
+      dataService.addItem(getItemProperties());
+    }
+    closeAddItemModal();
+  }
+
+  function getItemProperties(item){
     var uid = Auth.$getAuth().uid;
     var containerId = $scope.form.container.$id;
-    var item = {
+    // Add new item
+    var newItem = {
       name: $scope.form.name,
       servings: $scope.form.servings,
       expiresIn: $scope.form.expires,
@@ -228,10 +245,22 @@ function addItemCtrl($scope, $ionicModal, dateFormatterService, $rootScope, data
       expDate: new Date(Date.now() + $scope.form.expires * dateFormatterService.ONE_DAY_MILLI).getTime(),
       owner: uid
     };
-    firebase.database().ref('items').push(item);
-    $scope.$broadcast('itemAdded');
-    closeAddItemModal();
+    return newItem;
   }
+
+  function updateItemProperties(item){
+    var uid = Auth.$getAuth().uid;
+    var containerId = $scope.form.container.$id;
+    var oldExpIn = item.expiresIn;
+    //Update the current item
+    item.name = $scope.form.name;
+    item.expiresIn = $scope.form.expires;
+    item.servings = $scope.form.servings;
+    item.containerId = containerId;
+    item.expDate += ($scope.form.expires - oldExpIn) * dateFormatterService.ONE_DAY_MILLI;
+    return item;
+  }
+
 }
 
 angular.module('savingFood').controller('savingFood.containerCtrl', containerCtrl);
@@ -678,6 +707,18 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     return numExpiredItems;
   }
 
+  function addItem(item){
+    if(item && userItems){
+      userItems.$add(item);
+    }
+  }
+
+  function updateItem(item){
+    if(item && userItems){
+      userItems.$save(item);
+    }
+  }
+
   function useItem(item){
     if(item.servings > 1){
       logService.add(logService.createLogEntryFromItem(item));
@@ -773,6 +814,8 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     getAllItems: getAllItems,
     getNumExpiredItems: getNumExpiredItems,
     useItem: useItem,
+    addItem: addItem,
+    updateItem: updateItem,
     addContainer: addContainer,
     updateContainer: updateContainer,
     removeContainer: removeContainer,

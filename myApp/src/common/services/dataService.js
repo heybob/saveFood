@@ -70,6 +70,18 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     return numExpiredItems;
   }
 
+  function addItem(item){
+    if(item && userItems){
+      userItems.$add(item);
+    }
+  }
+
+  function updateItem(item){
+    if(item && userItems){
+      userItems.$save(item);
+    }
+  }
+
   function useItem(item){
     if(item.servings > 1){
       logService.add(logService.createLogEntryFromItem(item));
@@ -165,6 +177,8 @@ function dataService($q, $rootScope, $firebaseArray, dateFormatterService, Auth,
     getAllItems: getAllItems,
     getNumExpiredItems: getNumExpiredItems,
     useItem: useItem,
+    addItem: addItem,
+    updateItem: updateItem,
     addContainer: addContainer,
     updateContainer: updateContainer,
     removeContainer: removeContainer,
