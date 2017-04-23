@@ -1,18 +1,73 @@
 <ion-view view-title="{{container.name}} Details">
-  <ion-content class="padding">
-    <div class="list">
-      <div class="item item-divider" style="text-align: center">
-        <span>{{container.name}}</span>
-      </div>
-      <ul>
-        <li  class="item item-button-right" ng-repeat="item in itemsDetail | orderBy: 'expDate' | filter : container.$id">
-          <span>{{item.servings}} &nbsp; &nbsp;{{item.name}}</span>
-          <span  style="float: right; color: #ccc; margin-right: 20px">{{getReadableDate(item.expDate)}}</span>
-          <button ng-if="!isExpired(item.expDate)" class="button button-outline button-balanced" ng-click="useItem(item)">Eat</button>
-          <button ng-if="isExpired(item.expDate)" class="button button-outline button-balanced" ng-click="trashItems(item)">Trash</button>
-        </li>
-      </ul>
-    </div>
+  <ion-content>
     <p class="subtle" ng-if="items.length === 0">You have no items at this time.</p>
+    <ul>
+      <li class="item"
+          ng-repeat="item in itemsDetail | orderBy: 'expDate' | filter: notExpired | filter:filterByContainerId"
+          on-swipe-right="useItem(item)"
+          style="padding: 0;"
+          ng-class="isItemSelected(item) ? 'item--selected' : ''">
+        <div ng-click="selectItem(item)" style="width: 100%; overflow: hidden">
+          <div class="" style="width: 70%; display: inline-block; float: left; padding: 10px;">
+            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <div style="width: 45px; display: inline-block; overflow: hidden; margin-right: 10px">
+                <div style=" text-align: center; width: 36px; border-radius: 18px; background: #bbb; padding: 4px 8px; margin-top: 4px">
+                  <span style="color: white;">{{item.servings}}</span>
+                </div>
+              </div>
+              <div style="display:inline-block; vertical-align: top; line-height: 1;">
+                <span style="font-size: 15pt;">{{item.name}}</span> <br />
+                <span style="font-size: 9pt; color: #bbb">{{getContainerName(item.containerId)}}</span>
+              </div>
+            </div>
+          </div>
+          <div style="width: 30%; display: inline-block; float: left; padding: 10px">
+            <div style="text-align: right" >
+              <span style="font-size: 12pt; color: #bbb; line-height: 2.3">{{getReadableDate(item.expDate).toUpperCase()}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div ng-show="isItemSelected(item)"
+             ng-click="{{console.log('clicked')}}"
+             ng-class="isItemSelected(item) ? 'open' : 'closed'"
+             class="button-bar transition-height">
+
+          <div class="btn" ng-click="useItem(item)" >
+            <span>USE</span>
+          </div>
+
+          <div class="btn" ng-click="openAddItemModal(item)">
+            <span>EDIT</span>
+          </div>
+
+          <div class="btn" ng-click="extendExp(item)">
+            <span>EXTEND</span>
+          </div>
+
+          <div class="btn" ng-click="trashItems(item)">
+            <span>TRASH</span>
+          </div>
+
+          <div class="btn" ng-click="removeItem(item)">
+            <span>REMOVE</span>
+          </div>
+        </div>
+      </li>
+    </ul>
+    <!--<div class="list">-->
+      <!--<div class="item item-divider" style="text-align: center">-->
+        <!--<span>{{container.name}}</span>-->
+      <!--</div>-->
+      <!--<ul>-->
+        <!--<li  class="item item-button-right" ng-repeat="item in itemsDetail | orderBy: 'expDate' | filter : container.$id">-->
+          <!--<span>{{item.servings}} &nbsp; &nbsp;{{item.name}}</span>-->
+          <!--<span  style="float: right; color: #ccc; margin-right: 20px">{{getReadableDate(item.expDate)}}</span>-->
+          <!--<button ng-if="!isExpired(item.expDate)" class="button button-outline button-balanced" ng-click="useItem(item)">Eat</button>-->
+          <!--<button ng-if="isExpired(item.expDate)" class="button button-outline button-balanced" ng-click="trashItems(item)">Trash</button>-->
+        <!--</li>-->
+      <!--</ul>-->
+    <!--</div>-->
+    <!--<p class="subtle" ng-if="items.length === 0">You have no items at this time.</p>-->
   </ion-content>
 </ion-view>
