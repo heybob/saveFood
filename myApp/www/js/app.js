@@ -61,10 +61,12 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         }
       },
       resolve: {
-        "currentAuth": ["Auth","$state", function (Auth, $state) {
+        "currentAuth": ['Auth', '$state', '$rootScope', function (Auth, $state, $rootScope) {
           // $waitForSignIn returns a promise so the resolve waits for it to complete
+          $rootScope.stateLoading = true;
           return Auth.$waitForSignIn().then(function(data){
             if(!data){
+              $rootScope.stateLoading = false;
               $state.go('login');
             }
           });

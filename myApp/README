@@ -1,0 +1,13 @@
+To Install on new machine
+
+1. get homebrew: /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+2. install node
+3. install xcode command line tools
+3. install git
+4. node install
+5. add node_modules to path ex. PATH="${PATH}:/Users/heybob/git/saveFood/myApp/node_modules"
+6. npm install -g ionic cordova
+7. Copy config file for firebase.
+8. install xcode (required for ios emulation)
+8. ionic serve to start ionic
+
