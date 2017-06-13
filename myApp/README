@@ -9,5 +9,5 @@ To Install on new machine
 6. npm install -g ionic cordova
 7. Copy config file for firebase.
 8. install xcode (required for ios emulation)
-8. ionic serve to start ionic
+9. ionic serve to start ionic
 
